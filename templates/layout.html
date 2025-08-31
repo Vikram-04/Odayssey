@@ -16,7 +16,11 @@
   </head>
   <body>
     <nav id="desktop-nav">
+      {% if session["username"] %}
+      <div class="logo"><a href="/home">Odayssey</a></div>
+      {% else %}
       <div class="logo"><a href="/">Odayssey</a></div>
+      {% endif %}
       <div>
         {% if not session["username"] %}
         <ul class="nav-links">
