@@ -25,9 +25,15 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     hash = db.Column(db.String(120), nullable=False)
+    habits = db.relationship('Habit', backref='users', lazy=True)
+    
 
-    def __repr__(self):
-        return f'Username: {self.username}, Hash: {self.hash}'
+class Habit(db.Model):
+    __tablename__ = "habits"
+    id = db.Column(db.Integer, primary_key = True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable = False)
+    habit = db.Column(db.String(100), nullable=False)
+
 
 with app.app_context():
     db.create_all()
@@ -35,12 +41,21 @@ with app.app_context():
 
 @app.route("/")
 def index():
+    session.clear()
     return render_template("homepage.html")
    
-@app.route("/home")
+@app.route("/home", methods=["GET", "POST"])
 @login_required
 def home():
-    return render_template("index.html",username=session["username"])
+    user_id  = User.query.filter_by(username=session["username"]).first().id
+    if request.method == "POST":
+        habit = request.form.get("habit")
+        new_habit = Habit(user_id=user_id, habit=habit)
+        db.session.add(new_habit)
+        db.session.commit()
+        return redirect("/home")
+    habits = Habit.query.filter_by(user_id=user_id).all()
+    return render_template("index.html",username=session["username"],habits=habits)
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
