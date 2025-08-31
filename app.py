@@ -37,7 +37,7 @@ with app.app_context():
 def index():
     return render_template("homepage.html")
    
-@app.route("/home")
+@app.route("/habits")
 @login_required
 def home():
     return render_template("index.html",username=session["username"])
