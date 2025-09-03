@@ -1,7 +1,10 @@
 {% extends "layout.html" %} {% block title %} Habit Tracker{% endblock %}
 {%block body %}
 
-<div class="container">{{ month }} - {{ date.year }}</div>
+<div class="container-homepage">
+  <p>HABIT TRACKER</p>
+  <p>{{ month }} - {{ date.year }}</p>
+</div>
 <table class="table table-striped table-hover table-bordered">
   <thead class="thead-dark">
     <tr>
@@ -14,11 +17,14 @@
   <tbody>
     {% for habit in habits %}
     <tr>
-      <th scope="row">{{ habit.habit }}</th>
-      {% for log in habit.habit_logs %} {% if log.done == "T" %}
-      <td>Tick</td>
+      <th>{{ habit.habit }}</th>
+      {% for day in range(1, month_days+1) %} {% if (habit.id, day) in
+      logs_dict%} {% if logs_dict[(habit.id, day)] %}
+      <td>✅</td>
       {% else %}
-      <td>Cross</td>
+      <td>❌</td>
+      {% endif %} {% else %}
+      <td></td>
       {% endif %} {% endfor %}
     </tr>
     {% endfor %}

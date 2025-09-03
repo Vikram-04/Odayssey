@@ -44,8 +44,8 @@ class Habit_log(db.Model):
     __tablename__ = "habit_log"
     id = db.Column(db.Integer, primary_key = True)
     habit_id = db.Column(db.Integer, db.ForeignKey('habits.id'), nullable=False)
-    date = db.Column(db.Integer)
-    done = db.Column(db.String(4))
+    date = db.Column(db.Date, nullable=False)
+    status = db.Column(db.Boolean, nullable=False)
     def __repr__(self):
         return f'{self.date, self.done}'
 
@@ -70,8 +70,13 @@ def home():
         return redirect("/home")
     habits = Habit.query.filter_by(user_id=user_id).all()
     date = dt.date.today()
-    month_days = calendar.monthrange(date.year, date.month)[1]
-    return render_template("index.html", date=date, month=calendar.month_name[date.month],month_days=month_days, habits=habits)
+    month_days = calendar.monthrange(date.year, date.month)[1] 
+    logs = Habit_log.query.join(Habit).filter(Habit.user_id == user_id,Habit_log.date.between(dt.date(date.year, date.month, 1), dt.date(date.year, date.month, month_days))).all()
+    logs_dict = {}
+    for log in logs:
+        day = log.date.day   # extract day of the month (1–31)
+        logs_dict[(log.habit_id, day)] = log.status
+    return render_template("index.html", date=date, month=calendar.month_name[date.month],month_days=month_days, habits=habits, logs_dict=logs_dict)
 
 
     
