@@ -3,7 +3,10 @@ from flask_bcrypt import Bcrypt
 from flask_session import Session
 from helpers import login_required
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.sql import func
 import re
+import datetime as dt
+import calendar
 
 app = Flask(__name__)
 
@@ -33,7 +36,18 @@ class Habit(db.Model):
     id = db.Column(db.Integer, primary_key = True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable = False)
     habit = db.Column(db.String(100), nullable=False)
+    habit_logs = db.relationship('Habit_log', backref = 'habit', lazy=True)
+    def __repr__(self):
+        return f'{self.habit}'
 
+class Habit_log(db.Model):
+    __tablename__ = "habit_log"
+    id = db.Column(db.Integer, primary_key = True)
+    habit_id = db.Column(db.Integer, db.ForeignKey('habits.id'), nullable=False)
+    date = db.Column(db.Integer)
+    done = db.Column(db.String(4))
+    def __repr__(self):
+        return f'{self.date, self.done}'
 
 with app.app_context():
     db.create_all()
@@ -55,8 +69,12 @@ def home():
         db.session.commit()
         return redirect("/home")
     habits = Habit.query.filter_by(user_id=user_id).all()
-    return render_template("index.html",username=session["username"],habits=habits)
+    date = dt.date.today()
+    month_days = calendar.monthrange(date.year, date.month)[1]
+    return render_template("index.html", date=date, month=calendar.month_name[date.month],month_days=month_days, habits=habits)
 
+
+    
 @app.route("/login", methods=["GET", "POST"])
 def login():
     """Log user in"""

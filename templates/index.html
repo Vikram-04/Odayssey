@@ -1,31 +1,25 @@
 {% extends "layout.html" %} {% block title %} Habit Tracker{% endblock %}
 {%block body %}
+
+<div class="container">{{ month }} - {{ date.year }}</div>
 <table class="table table-striped table-hover table-bordered">
   <thead class="thead-dark">
     <tr>
       <th scope="col">Habits</th>
-      <th scope="col">Monday</th>
-      <th scope="col">Tuesday</th>
-      <th scope="col">Wednesday</th>
-      <th scope="col">Thursday</th>
-      <th scope="col">Friday</th>
-      <th scope="col">Saturday</th>
-      <th scope="col">Sunday</th>
-      <th scope="col">Streak</th>
+      {% for i in range(1, month_days+1) %}
+      <th scope="col">{% print(i) %}</th>
+      {% endfor %}
     </tr>
   </thead>
   <tbody>
-    {% for row in habits %}
+    {% for habit in habits %}
     <tr>
-      <th scope="row">{{ row.habit }}</th>
-      <td>&#10003;</td>
-      <td>&#10003;</td>
-      <td>&#10003;</td>
-      <td>&#10006;</td>
-      <td>&#10003;</td>
-      <td>&#10003;</td>
-      <td>&#10006;</td>
-      <td>0</td>
+      <th scope="row">{{ habit.habit }}</th>
+      {% for log in habit.habit_logs %} {% if log.done == "T" %}
+      <td>Tick</td>
+      {% else %}
+      <td>Cross</td>
+      {% endif %} {% endfor %}
     </tr>
     {% endfor %}
   </tbody>
