@@ -45,7 +45,7 @@ class Habit_log(db.Model):
     id = db.Column(db.Integer, primary_key = True)
     habit_id = db.Column(db.Integer, db.ForeignKey('habits.id'), nullable=False)
     date = db.Column(db.Date, nullable=False)
-    status = db.Column(db.Boolean, nullable=False)
+    status = db.Column(db.Boolean, default=False, nullable=False)
     def __repr__(self):
         return f'{self.date, self.done}'
 
@@ -79,7 +79,7 @@ def home():
     return render_template("index.html", date=date, month=calendar.month_name[date.month],month_days=month_days, habits=habits, logs_dict=logs_dict)
 
 
-    
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
     """Log user in"""
