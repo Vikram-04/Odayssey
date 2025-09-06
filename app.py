@@ -1,5 +1,3 @@
-Hello, this will be deleted after git revert
-
 from flask import Flask,request,redirect,render_template,session
 from flask_bcrypt import Bcrypt
 from flask_session import Session
