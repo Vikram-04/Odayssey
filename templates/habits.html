@@ -1,0 +1,79 @@
+{% extends "layout.html" %} {% block title %} Habit Tracker{% endblock %}
+{%block body %}
+
+<div class="container-homepage">
+  <p>HABIT TRACKER</p>
+  <p>{{ date.month }} - {{ date.year }}</p>
+</div>
+<table class="table table-striped table-hover table-bordered">
+  <thead class="thead-dark">
+    <tr>
+      <th scope="col">Habit</th>
+      {% for day in range(1, days_in_month + 1) %}
+      <th scope="col">{{ day }}</th>
+      {% endfor %}
+    </tr>
+  </thead>
+  <tbody>
+    {% for habit in habits %}
+    <tr>
+      <th scope="row">{{ habit.habit }}</th>
+      {% for day in range(1, days_in_month + 1) %} {% set key = (habit.id,
+      day)%} {% if key in logs_dict %} {% set done = logs_dict[key][0] %} {%
+      else %} {% set done = None %} {% endif %}
+
+      <td
+        class="habit-cell"
+        id="cell"
+        data-habit-id="{{ habit.id }}"
+        data-day="{{ day }}"
+      >
+        {% if done == True %} ✅ {% elif done == False %} ❌ {% else %} - {%
+        endif %}
+      </td>
+      {% endfor %}
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<form action="/home" method="post" class="form-container mx-auto">
+  <div class="form-group"><h5>Add new habit</h5></div>
+  <div class="form-group">
+    <input
+      class="form-control"
+      type="text"
+      placeholder="Habit"
+      autocomplete="off"
+      name="habit"
+    />
+  </div>
+  <div class="form-group">
+    <button class="btn btn-primary">Add Habit</button>
+  </div>
+</form>
+
+<script>
+  document.querySelectorAll(".habit-cell").forEach((cell) => {
+    cell.addEventListener("click", () => {
+      const habitId = cell.dataset.habitId;
+      const day = cell.dataset.day;
+
+      // prevent clicking on future dates
+      const today = new Date().getDate();
+      if (day > today) return;
+
+      fetch("/toggle_habit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ habit_id: habitId, day: day }),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          cell.innerText = data.done ? "✅" : "❌";
+        });
+    });
+  });
+</script>
+
+{% endblock %}

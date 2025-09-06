@@ -1,9 +1,12 @@
-from flask import Flask,request,redirect,render_template,session
+from flask import Flask,request,redirect,render_template,session, jsonify
 from flask_bcrypt import Bcrypt
 from flask_session import Session
 from helpers import login_required
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.sql import func
 import re
+from datetime import date, datetime
+import calendar
 
 app = Flask(__name__)
 
@@ -33,7 +36,18 @@ class Habit(db.Model):
     id = db.Column(db.Integer, primary_key = True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable = False)
     habit = db.Column(db.String(100), nullable=False)
+    habit_logs = db.relationship('Habit_log', backref = 'habit', lazy=True)
+    def __repr__(self):
+        return f'{self.habit}'
 
+class Habit_log(db.Model):
+    __tablename__ = "habit_log"
+    id = db.Column(db.Integer, primary_key = True)
+    habit_id = db.Column(db.Integer, db.ForeignKey('habits.id'), nullable=False)
+    date = db.Column(db.Date, nullable=False)
+    status = db.Column(db.Boolean, default=False, nullable=False)
+    def __repr__(self):
+        return f'{self.date, self.done}'
 
 with app.app_context():
     db.create_all()
@@ -55,7 +69,52 @@ def home():
         db.session.commit()
         return redirect("/home")
     habits = Habit.query.filter_by(user_id=user_id).all()
-    return render_template("index.html",username=session["username"],habits=habits)
+    # figure out days in current month
+    today = date.today()
+    days_in_month = calendar.monthrange(today.year, today.month)[1]
+
+    # fetch logs for all habits in this month
+    start_of_month = date(today.year, today.month, 1)
+    logs = Habit_log.query.join(Habit).filter(
+        Habit.user_id == user_id,
+        Habit_log.date >= start_of_month,
+        Habit_log.date <= date(today.year, today.month, days_in_month)
+    ).all()
+
+    # build dictionary {(habit_id, day): (done, log_id)}
+    logs_dict = {}
+    for log in logs:
+        logs_dict[(log.habit_id, log.date.day)] = (log.status, log.id)
+
+    return render_template("habits.html",
+                           habits=habits,
+                           days_in_month=days_in_month,
+                           logs_dict=logs_dict,
+                           date=today,
+                           today=today.day)
+
+@app.route("/toggle_habit", methods=["POST"])
+def toggle_habit():
+    data = request.get_json()
+    habit_id = int(data["habit_id"])
+    day = int(data["day"])
+
+    # build date for this month
+    today = date.today()
+    log_date = date(today.year, today.month, day)
+
+    # find or create log
+    log = Habit_log.query.filter_by(habit_id=habit_id, date=log_date).first()
+    if not log:
+        log = Habit_log(habit_id=habit_id, date=log_date, status=True)
+        db.session.add(log)
+    else:
+        log.status = not log.status
+
+    db.session.commit()
+
+    return jsonify({"done": log.status})
+
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
