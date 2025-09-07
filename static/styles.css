@@ -150,3 +150,7 @@ label {
   font-family: "Bebas Neue", sans-serif;
   font-size: x-large;
 }
+
+#habit-grid td {
+  cursor: pointer;
+}
