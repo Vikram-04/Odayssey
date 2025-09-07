@@ -154,3 +154,8 @@ label {
 #habit-grid td {
   cursor: pointer;
 }
+
+.nav-buttons {
+  display: flex;
+  gap: 10px;
+}

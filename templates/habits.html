@@ -3,7 +3,29 @@
 
 <div class="container-homepage">
   <p>HABIT TRACKER</p>
-  <p>{{ date.month }} - {{ date.year }}</p>
+  <p>{{ month_name }} - {{ date.year }}</p>
+</div>
+<div class="nav-buttons">
+  <form method="get" action="/home" class="mb-3">
+    {% set prev_month = date.month - 1 if date.month > 1 else 12 %} {% set
+    prev_year = date.year if date.month > 1 else date.year - 1 %}
+    <input
+      type="hidden"
+      name="month"
+      value="{{ prev_year }}-{{ '%02d' % prev_month }}"
+    />
+    <button type="submit" class="btn btn-secondary"><</button>
+  </form>
+  <form method="get" action="/home" class="mb-3">
+    {% set next_month = 1 if date.month == 12 else date.month + 1 %} {% set
+    next_year = date.year + 1 if date.month == 12 else date.year %}
+    <input
+      type="hidden"
+      name="month"
+      value="{{ next_year }}-{{ '%02d' % next_month }}"
+    />
+    <button type="submit" class="btn btn-secondary">></button>
+  </form>
 </div>
 <table id="habit-grid" class="table table-striped table-hover table-bordered">
   <thead class="thead-dark">
@@ -18,15 +40,15 @@
     {% for habit in habits %}
     <tr>
       <th scope="row">{{ habit.habit }}</th>
-      {% for day in range(1, days_in_month + 1) %} {% set key = (habit.id,
-      day)%} {% if key in logs_dict %} {% set done = logs_dict[key][0] %} {%
-      else %} {% set done = None %} {% endif %}
+      {% for date in dates %} {% set key = (habit.id, date)%} {% if key in
+      logs_dict %} {% set done = logs_dict[key][0] %} {% else %} {% set done =
+      None %} {% endif %}
 
       <td
         class="habit-cell"
         id="cell"
         data-habit-id="{{ habit.id }}"
-        data-day="{{ day }}"
+        data-date="{{ date }}"
       >
         {% if done == True %} ✅ {% elif done == False %} ❌ {% else %} - {%
         endif %}
@@ -54,19 +76,23 @@
 </form>
 
 <script>
+  function isSameOrBefore(d1, d2) {
+    return d1.setHours(0, 0, 0, 0) <= d2.setHours(0, 0, 0, 0);
+  }
   document.querySelectorAll(".habit-cell").forEach((cell) => {
     cell.addEventListener("click", () => {
       const habitId = cell.dataset.habitId;
-      const day = cell.dataset.day;
+      const dateStr = cell.dataset.date;
+      const cellDate = new Date(dateStr);
+      const today = new Date();
 
-      // prevent clicking on future dates
-      const today = new Date().getDate();
-      if (day > today) return;
+      // Only allow toggling for today or earlier
+      if (!isSameOrBefore(cellDate, today)) return;
 
       fetch("/toggle_habit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ habit_id: habitId, day: day }),
+        body: JSON.stringify({ habit_id: habitId, date: dateStr }),
       })
         .then((res) => res.json())
         .then((data) => {

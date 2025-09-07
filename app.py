@@ -62,6 +62,18 @@ def index():
 @login_required
 def home():
     user_id  = User.query.filter_by(username=session["username"]).first().id
+    # Get month from query parameter
+    month_str = request.args.get("month")
+    if month_str:
+        # month_str format: YYYY-MM
+        try:
+            year, month = map(int, month_str.split("-"))
+            today = date(year, month, 1)
+        except Exception:
+            today = date.today()
+    else:
+        today = date.today()
+
     if request.method == "POST":
         habit = request.form.get("habit")
         new_habit = Habit(user_id=user_id, habit=habit)
@@ -69,8 +81,6 @@ def home():
         db.session.commit()
         return redirect("/home")
     habits = Habit.query.filter_by(user_id=user_id).all()
-    # figure out days in current month
-    today = date.today()
     days_in_month = calendar.monthrange(today.year, today.month)[1]
 
     # fetch logs for all habits in this month
@@ -80,30 +90,30 @@ def home():
         Habit_log.date >= start_of_month,
         Habit_log.date <= date(today.year, today.month, days_in_month)
     ).all()
-
+   
+    marked_dates = [log.date for log in logs]
     # build dictionary {(habit_id, day): (done, log_id)}
     logs_dict = {}
+    dates = []
+    for day in range(1, days_in_month+1):
+        dates.append(date(today.year, today.month, day))
     for log in logs:
-        logs_dict[(log.habit_id, log.date.day)] = (log.status, log.id)
-
+        logs_dict[(log.habit_id, log.date)] = (log.status, log.id)
     return render_template("habits.html",
                            habits=habits,
                            days_in_month=days_in_month,
                            logs_dict=logs_dict,
+                           month_name = calendar.month_name[today.month],
                            date=today,
-                           today=today.day)
+                           today=today.day,dates=dates)
 
 @app.route("/toggle_habit", methods=["POST"])
 def toggle_habit():
     data = request.get_json()
     habit_id = int(data["habit_id"])
-    day = int(data["day"])
+    date_str = data["date"]
+    log_date = datetime.strptime(date_str, "%Y-%m-%d").date()
 
-    # build date for this month
-    today = date.today()
-    log_date = date(today.year, today.month, day)
-
-    # find or create log
     log = Habit_log.query.filter_by(habit_id=habit_id, date=log_date).first()
     if not log:
         log = Habit_log(habit_id=habit_id, date=log_date, status=True)
@@ -112,7 +122,7 @@ def toggle_habit():
         log.status = not log.status
 
     db.session.commit()
-
+        
     return jsonify({"done": log.status})
 
 
