@@ -8,3 +8,9 @@ def login_required(f):
             return redirect("/login")
         return f(*args, **kwargs)
     return decorated_function
+
+def isPast(today_month, today_year, created_month, created_year):
+        if(created_year<today_year or (created_year == today_year and created_month <= today_month)):
+            return True
+        else:
+            return False

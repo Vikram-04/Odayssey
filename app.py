@@ -1,7 +1,7 @@
 from flask import Flask,request,redirect,render_template,session, jsonify
 from flask_bcrypt import Bcrypt
 from flask_session import Session
-from helpers import login_required
+from helpers import login_required, isPast
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.sql import func
 import re
@@ -36,6 +36,7 @@ class Habit(db.Model):
     id = db.Column(db.Integer, primary_key = True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable = False)
     habit = db.Column(db.String(100), nullable=False)
+    created_on = db.Column(db.Date, nullable = False)
     habit_logs = db.relationship('Habit_log', backref = 'habit', lazy=True)
     def __repr__(self):
         return f'{self.habit}'
@@ -76,11 +77,14 @@ def home():
 
     if request.method == "POST":
         habit = request.form.get("habit")
-        new_habit = Habit(user_id=user_id, habit=habit)
+        new_habit = Habit(user_id=user_id, habit=habit, created_on = date.today())
         db.session.add(new_habit)
         db.session.commit()
         return redirect("/home")
     habits = Habit.query.filter_by(user_id=user_id).all()
+    habits_past = [
+    habit for habit in habits
+    if isPast(today.month, today.year, habit.created_on.month, habit.created_on.year)]
     days_in_month = calendar.monthrange(today.year, today.month)[1]
 
     # fetch logs for all habits in this month
@@ -100,7 +104,7 @@ def home():
     for log in logs:
         logs_dict[(log.habit_id, log.date)] = (log.status, log.id)
     return render_template("habits.html",
-                           habits=habits,
+                           habits=habits_past,
                            days_in_month=days_in_month,
                            logs_dict=logs_dict,
                            month_name = calendar.month_name[today.month],
