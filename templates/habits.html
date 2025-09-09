@@ -39,7 +39,16 @@
   <tbody>
     {% for habit in habits %}
     <tr>
-      <th scope="row">{{ habit.habit }}</th>
+      <th scope="row" class="row-head">
+        {{ habit.habit }}
+        <button
+          class="del-btn btn btn-primary"
+          data-habit-id="{{ habit.id }}"
+          data-del-date="{{ date }}"
+        >
+          ␡
+        </button>
+      </th>
       {% for date in dates %} {% set key = (habit.id, date)%} {% if key in
       logs_dict %} {% set done = logs_dict[key][0] %} {% else %} {% set done =
       None %} {% endif %}
@@ -97,6 +106,24 @@
         .then((res) => res.json())
         .then((data) => {
           cell.innerText = data.done ? "✅" : "❌";
+        });
+    });
+  });
+  document.querySelectorAll(".del-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const habitId = btn.dataset.habitId;
+      const dateStr = btn.dataset.delDate;
+
+      fetch("/delete-habit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ habit_id: habitId, date: dateStr }),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success) {
+            btn.closest("tr").remove();
+          }
         });
     });
   });

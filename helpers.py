@@ -14,3 +14,9 @@ def isPast(today_month, today_year, created_month, created_year):
             return True
         else:
             return False
+        
+def isActive(today, deleted_on):
+     if((deleted_on is None) or (deleted_on.year>today.year or (deleted_on.year == today.year and deleted_on.month > today.month))):
+         return True
+     else:
+         return False

@@ -1,7 +1,7 @@
 from flask import Flask,request,redirect,render_template,session, jsonify
 from flask_bcrypt import Bcrypt
 from flask_session import Session
-from helpers import login_required, isPast
+from helpers import login_required, isPast, isActive
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.sql import func
 import re
@@ -37,6 +37,7 @@ class Habit(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable = False)
     habit = db.Column(db.String(100), nullable=False)
     created_on = db.Column(db.Date, nullable = False)
+    deleted_on = db.Column(db.Date, nullable = True)
     habit_logs = db.relationship('Habit_log', backref = 'habit', lazy=True)
     def __repr__(self):
         return f'{self.habit}'
@@ -84,7 +85,7 @@ def home():
     habits = Habit.query.filter_by(user_id=user_id).all()
     habits_past = [
     habit for habit in habits
-    if isPast(today.month, today.year, habit.created_on.month, habit.created_on.year)]
+    if isPast(today.month, today.year, habit.created_on.month, habit.created_on.year) and isActive(today, habit.deleted_on)]
     days_in_month = calendar.monthrange(today.year, today.month)[1]
 
     # fetch logs for all habits in this month
@@ -129,6 +130,17 @@ def toggle_habit():
         
     return jsonify({"done": log.status})
 
+
+@app.route("/delete-habit", methods = ["POST"])
+def delete_habit():
+    data = request.get_json()
+    habit_id = int(data["habit_id"])
+    date_str = data["date"]
+    date = datetime.strptime(date_str, "%Y-%m-%d").date()
+    habit = Habit.query.filter_by(id=habit_id).first()
+    habit.deleted_on = date
+    db.session.commit()
+    return jsonify({"success": True})
 
 @app.route("/login", methods=["GET", "POST"])
 def login():

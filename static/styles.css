@@ -159,3 +159,8 @@ label {
   display: flex;
   gap: 10px;
 }
+
+.row-head {
+  display: flex;
+  gap: 10px;
+}
