@@ -1,16 +1,18 @@
 {% extends "layout.html" %} {% block title %} Welcome {% endblock %} {% block
-body %}
-
-<div class="container-homepage">
-  <img src="/static/diary1.webp" />
-  <div>
-    <p>Welcome to Odayssey.</p>
-    <p>Your Very Own Digital Diary.</p>
-    <div class="buttons">
-      <a href="/login"><button type="submit">Login</button></a>
-      <a href="/register"><button type="submit">Sign Up</button> </a>
+body %} {% block body_tag %}
+<body class="homepage-bg">
+  {% endblock %}
+  <div class="container1">
+    <div class="subcontainer">
+      <div class="heading">
+        <h1>Welcome to Odayssey</h1>
+        <h1>Your Very Own Digital Diary</h1>
+      </div>
+      <div class="buttons">
+        <a href="/login"><button type="submit">Login</button></a>
+        <a href="/register"><button type="submit">Sign Up</button> </a>
+      </div>
     </div>
   </div>
-</div>
-
-{% endblock %}
+  {% endblock %}
+</body>
