@@ -171,7 +171,7 @@ nav {
 
 .homepage-bg {
   background: url("diary0.jpg") no-repeat top center/cover;
-  color: var(--text-color);
+  background-size: 100vw 100vh;
 }
 
 .container1 {
@@ -228,6 +228,47 @@ nav {
   background-color: var(--light-hover-bg);
 }
 
+.container2 {
+  display: flex;
+  padding: 40px 30px;
+  justify-content: center;
+  gap: 5%;
+  width: 100%;
+  background-color: #ebebeb;
+}
+
+.subcontainer2 {
+  align-items: center;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  background-color: white;
+}
+.subcontainer2 img {
+  max-width: 100%;
+  display: block;
+}
+footer {
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  color: white;
+  text-align: center;
+  background-color: black;
+  justify-content: center;
+  align-items: center;
+}
+
+.social-links {
+  display: flex;
+  justify-content: center;
+  gap: 3%;
+}
+.social-links img {
+  height: 30px;
+  width: 30px;
+  background-color: white;
+}
 /* For mobile phones */
 @media (max-width: 768px) {
   .container1 {
@@ -236,16 +277,11 @@ nav {
     padding: var(--spacing-md) 1rem;
     gap: var(--spacing-lg);
   }
-
-  .buttons {
+  .container2 {
     flex-direction: column;
-    align-items: center;
-    gap: 1rem;
-  }
-
-  .buttons button {
-    width: 80%;
-    padding: 1rem 2rem;
+    min-height: 100vh;
+    padding: var(--spacing-md) 1rem;
+    gap: var(--spacing-lg);
   }
 }
 

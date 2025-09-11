@@ -1,7 +1,6 @@
-{% extends "layout.html" %} {% block title %} Welcome {% endblock %} {% block
-body %} {% block body_tag %}
-<body class="homepage-bg">
-  {% endblock %}
+{% extends "layout.html" %} {% block title %} Welcome {% endblock %} 
+{% block body_start %}<body class="homepage-bg">{% endblock %}
+  {% block body %} 
   <div class="container1">
     <div class="subcontainer">
       <div class="heading">
@@ -14,5 +13,48 @@ body %} {% block body_tag %}
       </div>
     </div>
   </div>
+  <div class="container2">
+      <div class="subcontainer2">
+        <img
+          src="static/habit-tracker.jpg"
+          alt="habit-tracker"
+          height="300px"
+          width="400px"
+        />
+        <h3 class="p-2">Track your habits</h3>
+      </div>
+      <div class="subcontainer2">
+        <img
+          src="static/todo.jpeg"
+          alt="todo"
+          height="300px"
+          width="400px"
+        />
+        <h3 class="p-2">Manage your todo lists</h3>
+      </div>
+      <div class="subcontainer2">
+        <img
+          src="static/journal.jpg"
+          alt="journal"
+          height="300px"
+          width="400px"
+        />
+        <h3 class="p-2">Write your journals</h3>
+      </div>
+    </div>
+  </div>
+  <footer>
+    <h2 class="mt-2 p-3">ODAYSSEY</h2>
+    <div class="container p-2">
+      <h3 style="text-decoration:underline; text-underline-offset:7px;">Reach out</h3>
+      <div class="mt-3 p-2 social-links">
+        <a href="mailto:vikramrawal7893@gmail.com"><img src="static/email.png"></a>
+        <a href="https://github.com/Vikram-04"><img src="static/github.png"></a>
+        <a href="https://www.instagram.com/rawal_vikram_04/"><img src="static/instagram2.png"></a>
+        <a href="https://www.linkedin.com/in/vikram-rawal-6b3601303/"><img src="static/linkedin.png"></a>
+      </div>
+    </div>
+    <h6 class="mt-5">© 2025 Odayssey. All rights reserved.</h6>
+  </footer>
   {% endblock %}
-</body>
+{% block body_end %}</body>{% endblock %}
