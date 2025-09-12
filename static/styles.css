@@ -19,6 +19,9 @@ body {
   box-sizing: border-box;
   min-height: fit-content;
 }
+a button {
+  cursor: pointer;
+}
 a {
   text-decoration: none;
 }
@@ -269,6 +272,15 @@ footer {
   width: 30px;
   background-color: white;
 }
+.cta-button {
+  background-color: #ffdc00;
+  font-size: x-large;
+  padding: 10px 25px;
+  margin-left: 20%;
+}
+.cta-button:hover {
+  background-color: #ffea55;
+}
 /* For mobile phones */
 @media (max-width: 768px) {
   .container1 {
@@ -315,9 +327,16 @@ label {
 .nav-buttons {
   display: flex;
   gap: 10px;
+  align-items: center;
 }
 
 .row-head {
   display: flex;
   gap: 10px;
+}
+.habit-container {
+  text-align: center;
+  align-items: center;
+  border: solid 2px black;
+  overflow-x: auto;
 }
