@@ -330,13 +330,51 @@ label {
   align-items: center;
 }
 
-.row-head {
+.habit-container {
+  border: 2px solid black;
+  border-radius: 8px;
+  overflow-x: auto;
+}
+
+.habit-cell.done {
+  background-color: #28a745;
+}
+#habit-grid {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: center;
+}
+#habit-grid th,
+#habit-grid td {
+  border: 1px solid black;
+}
+#habit-grid th {
+  vertical-align: middle;
+  font-weight: 600;
+  padding: 0.5rem;
+}
+#habit-grid thead th {
+  min-width: 40px;
+  height: 40px;
+  font-size: 0.9rem;
+}
+#habit-grid .habit-cell {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  transition: background-color 0.2s ease-in-out;
+}
+.del-btn {
+  visibility: hidden;
+}
+
+.row-head:hover .del-btn {
+  visibility: visible;
+}
+.habit-form-container {
+  margin-left: 3%;
+}
+.habit-form {
   display: flex;
   gap: 10px;
-}
-.habit-container {
-  text-align: center;
-  align-items: center;
-  border: solid 2px black;
-  overflow-x: auto;
 }
