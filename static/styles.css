@@ -378,3 +378,25 @@ label {
   display: flex;
   gap: 10px;
 }
+
+/* Todo list */
+#todo-container {
+  margin-top: 3rem;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  gap: 5rem;
+}
+.list-container {
+  min-width: 25%;
+  padding-block: 1rem;
+  padding-inline: 3rem;
+  border: solid black 1px;
+}
+.todo-task {
+  cursor: pointer;
+}
+.task-done {
+  cursor: pointer;
+  text-decoration: line-through;
+}

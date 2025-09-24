@@ -29,6 +29,7 @@ class User(db.Model):
     username = db.Column(db.String(80), unique=True, nullable=False)
     hash = db.Column(db.String(120), nullable=False)
     habits = db.relationship('Habit', backref='users', lazy=True)
+    tasks = db.relationship('Task', backref='users', lazy=True)
     
 
 class Habit(db.Model):
@@ -51,6 +52,15 @@ class Habit_log(db.Model):
     def __repr__(self):
         return f'{self.date, self.done}'
 
+class Task(db.Model):
+    __tablename__ = "tasks"
+    id = db.Column(db.Integer, primary_key = True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable = False)
+    task = db.Column(db.String(100), nullable=False)
+    done = db.Column(db.Boolean, default=False, nullable=False)
+    def __repr__(self):
+        return f'{self.task}'
+    
 with app.app_context():
     db.create_all()
     
@@ -107,7 +117,7 @@ def home():
     return render_template("habits.html",
                            habits=habits_past,
                            days_in_month=days_in_month,
-                           logs_dict=logs_dict,
+                              logs_dict=logs_dict,
                            month_name = calendar.month_name[today.month],
                            date=today,
                            today=today.day,dates=dates)
@@ -141,6 +151,45 @@ def delete_habit():
     habit.deleted_on = date
     db.session.commit()
     return jsonify({"success": True})
+
+@app.route("/todo", methods=["GET", "POST"])
+@login_required
+def todo():
+    user_id  = User.query.filter_by(username=session["username"]).first().id
+    if request.method == "POST":
+        task = request.form.get("task")
+        new_task = Task(user_id=user_id, task=task)
+        db.session.add(new_task)
+        db.session.commit()
+        return redirect("/todo")
+    tasks = Task.query.filter_by(user_id=user_id).all()
+    return render_template("todo.html",tasks=tasks)
+
+@app.route("/mark_done", methods=["POST"])
+def mark_done():
+    data = request.get_json()
+    task_id = int(data["task_id"])
+    task = Task.query.filter_by(id=task_id).first()
+    task.done = not task.done
+    db.session.commit()
+    return jsonify({"done": task.done})
+
+@app.route("/remove_task", methods=["POST"])
+def remove_task():
+    data = request.get_json()
+    task_id = int(data["task_id"])
+    task = Task.query.filter_by(id=task_id).first()
+    db.session.delete(task)
+    db.session.commit()
+    return jsonify({"success": True})
+
+@app.route("/clear_all_tasks", methods=["POST"])
+def clear_all_tasks():
+    user_id  = User.query.filter_by(username=session["username"]).first().id
+    Task.query.filter_by(user_id=user_id, done=True).delete()
+    db.session.commit()
+    return jsonify({"success": True})
+
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
