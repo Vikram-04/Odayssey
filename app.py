@@ -6,6 +6,7 @@ from flask_sqlalchemy import SQLAlchemy
 import re
 from datetime import date, datetime
 import calendar
+import sqlalchemy
 
 app = Flask(__name__)
 
