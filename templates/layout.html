@@ -14,31 +14,52 @@
     <link rel="stylesheet" href="/static/styles.css" />
     <title>{% block title %} {% endblock %}</title>
   </head>
+  {% block body_start %}
   <body>
+    {% endblock %}
     <nav id="desktop-nav">
       {% if session["username"] %}
-      <div class="logo"><a href="/home">Odayssey</a></div>
+      <a href="/home" class="logo"><img src="static/logo.png" alt="logo" /></a>
       {% else %}
-      <div class="logo"><a href="/">Odayssey</a></div>
+      <a href="/" class="logo"><img src="static/logo.png" alt="logo" /></a>
+      {% endif %} {% if not session["username"] %}
+      <ul class="nav-links">
+        <li><a href="/login">Login</a></li>
+        <li><a href="/register">Sign Up</a></li>
+        <li><a href="#">About</a></li>
+        <li><a href="#">Contact</a></li>
+      </ul>
+      {% else %}
+      <ul class="nav-links">
+        <li><a href="/home">Routine</a></li>
+        <li><a href="/todo">Todo</a></li>
+        <li><a href="/">Journal</a></li>
+        <li><a href="/logout">Logout</a></li>
+      </ul>
       {% endif %}
-      <div>
-        {% if not session["username"] %}
-        <ul class="nav-links">
-          <li><a href="/login">Login</a></li>
-          <li><a href="/register">Sign Up</a></li>
-          <li><a href="#">About</a></li>
-          <li><a href="#">Contact</a></li>
-        </ul>
-        {% else %}
-        <ul class="nav-links">
-          <li><a href="/">Routine</a></li>
-          <li><a href="/">Tasks</a></li>
-          <li><a href="/">Journal</a></li>
-          <li><a href="/logout">Logout</a></li>
-        </ul>
-        {% endif %}
+
+      <div class="hamburger">
+        <div class="line line1"></div>
+        <div class="line line2"></div>
+        <div class="line line3"></div>
       </div>
     </nav>
     {% block body %} {% endblock %}
+    <script>
+      const navSlide = () => {
+        const hamburger = document.querySelector(".hamburger");
+        const nav = document.querySelector(".nav-links");
+
+        hamburger.addEventListener("click", () => {
+          nav.classList.toggle("nav-active");
+
+          hamburger.classList.toggle("toggle");
+        });
+      };
+
+      navSlide();
+    </script>
+    {% block body_end %}
   </body>
+  {% endblock %}
 </html>
