@@ -2,4 +2,4 @@ flask
 flask-session
 flask_bcrypt
 flask_sqlalchemy
-functools
+requests
