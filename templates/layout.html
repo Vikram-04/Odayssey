@@ -18,26 +18,24 @@
   <body>
     {% endblock %}
     <nav id="desktop-nav">
-      {% if session["username"] %}
+      {% if session["user_id"] %}
       <a href="/home" class="logo"><img src="static/logo.png" alt="logo" /></a>
       {% else %}
       <a href="/" class="logo"><img src="static/logo.png" alt="logo" /></a>
-      {% endif %} {% if not session["username"] %}
+      {% endif %} {% if not session["user_id"] %}
       <ul class="nav-links">
         <li><a href="/login">Login</a></li>
         <li><a href="/register">Sign Up</a></li>
-        <li><a href="#">About</a></li>
-        <li><a href="#">Contact</a></li>
       </ul>
       {% else %}
       <ul class="nav-links">
         <li><a href="/home">Routine</a></li>
         <li><a href="/todo">Todo</a></li>
-        <li><a href="/">Journal</a></li>
+        <li><a href="/journal">Journal</a></li>
         <li><a href="/logout">Logout</a></li>
       </ul>
       {% endif %}
-
+      <!-- AI-assisted: Hamburger for smaller screens -->
       <div class="hamburger">
         <div class="line line1"></div>
         <div class="line line2"></div>

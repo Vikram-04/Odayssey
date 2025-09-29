@@ -1,0 +1,50 @@
+{% extends "layout.html" %}{% block title %}Journal{% endblock %} {% block body
+%}
+<h1 class="container pt-4 pb-2 text-center">Journal</h1>
+
+<form action="/journal" method="POST" class="journal-form">
+  <div class="form-group">
+    <textarea
+      name="content"
+      placeholder="Write your thoughts..."
+      rows="4"
+      required
+    ></textarea>
+  </div>
+  <div class="form-group">
+    <button class="btn btn-primary" type="submit">Save Entry</button>
+  </div>
+</form>
+
+<div class="journal-feed">
+  {% for entry in entries %}
+  <div class="journal-entry">
+    <p class="timestamp">{{ entry.created_at.strftime("%Y-%m-%d %H:%M") }}</p>
+    <p>{{ entry.content }}</p>
+    <button class="btn btn-secondary entry-del" data-entry-id="{{ entry.id }}">
+      DELETE
+    </button>
+  </div>
+  {% else %}
+  <p>No entries yet.</p>
+  {% endfor %}
+</div>
+<script>
+  document.querySelectorAll(".entry-del").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const entryId = btn.dataset.entryId;
+      fetch("/delete-entry", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ entry_id: entryId }),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success) {
+            btn.closest(".journal-entry").remove();
+          }
+        });
+    });
+  });
+</script>
+{% endblock %}

@@ -1,9 +1,8 @@
 from flask import Flask,request,redirect,render_template,session, jsonify
 from flask_bcrypt import Bcrypt
 from flask_session import Session
-from helpers import login_required, isPast, isActive
+from helpers import login_required, isPast, isActive, fetch_quote
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.sql import func
 import re
 from datetime import date, datetime
 import calendar
@@ -28,7 +27,7 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     hash = db.Column(db.String(120), nullable=False)
-    habits = db.relationship('Habit', backref='users', lazy=True)
+    habits = db.relationship('Habit', backref='users', lazy=True) # AI-assisted: Using relationships from sqlalchemy
     tasks = db.relationship('Task', backref='users', lazy=True)
     
 
@@ -44,7 +43,7 @@ class Habit(db.Model):
         return f'{self.habit}'
 
 class Habit_log(db.Model):
-    __tablename__ = "habit_log"
+    __tablename__ = "habit_logs"
     id = db.Column(db.Integer, primary_key = True)
     habit_id = db.Column(db.Integer, db.ForeignKey('habits.id'), nullable=False)
     date = db.Column(db.Date, nullable=False)
@@ -61,6 +60,20 @@ class Task(db.Model):
     def __repr__(self):
         return f'{self.task}'
     
+class Journal(db.Model):
+    __tablename__ = "journals"
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    content = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+
+class Quote(db.Model):
+    __tablename__ = "quotes"
+    id = db.Column(db.Integer, primary_key=True)
+    date = db.Column(db.Date, unique=True, nullable=False)
+    quote = db.Column(db.String, nullable=False)
+    author = db.Column(db.String, nullable=True)
+
 with app.app_context():
     db.create_all()
     
@@ -73,7 +86,7 @@ def index():
 @app.route("/home", methods=["GET", "POST"])
 @login_required
 def home():
-    user_id  = User.query.filter_by(username=session["username"]).first().id
+    user_id  = session["user_id"]
     # Get month from query parameter
     month_str = request.args.get("month")
     if month_str:
@@ -107,6 +120,7 @@ def home():
     ).all()
    
     marked_dates = [log.date for log in logs]
+    # AI-assisted: learned to use a (habit_id, day) dictionary for quick habit log lookups
     # build dictionary {(habit_id, day): (done, log_id)}
     logs_dict = {}
     dates = []
@@ -114,13 +128,21 @@ def home():
         dates.append(date(today.year, today.month, day))
     for log in logs:
         logs_dict[(log.habit_id, log.date)] = (log.status, log.id)
+    date_today = date.today()
+    quote = Quote.query.filter_by(date=date_today).first()
+    if not quote:
+        quote_dict = fetch_quote()
+        new_quote = Quote(date=date_today, quote=quote_dict["quote"],author=quote_dict["author"])
+        db.session.add(new_quote)
+        db.session.commit()
+        quote = Quote.query.filter_by(date=date_today).first()
     return render_template("habits.html",
                            habits=habits_past,
                            days_in_month=days_in_month,
                               logs_dict=logs_dict,
                            month_name = calendar.month_name[today.month],
                            date=today,
-                           today=today.day,dates=dates)
+                           today=today.day,dates=dates,quote=quote)
 
 @app.route("/toggle_habit", methods=["POST"])
 def toggle_habit():
@@ -155,7 +177,7 @@ def delete_habit():
 @app.route("/todo", methods=["GET", "POST"])
 @login_required
 def todo():
-    user_id  = User.query.filter_by(username=session["username"]).first().id
+    user_id  = session["user_id"]
     if request.method == "POST":
         task = request.form.get("task")
         new_task = Task(user_id=user_id, task=task)
@@ -185,11 +207,38 @@ def remove_task():
 
 @app.route("/clear_all_tasks", methods=["POST"])
 def clear_all_tasks():
-    user_id  = User.query.filter_by(username=session["username"]).first().id
+    user_id  = session["user_id"]
     Task.query.filter_by(user_id=user_id, done=True).delete()
     db.session.commit()
     return jsonify({"success": True})
 
+@app.route("/journal", methods=["GET", "POST"])
+@login_required
+def journal():
+    user_id  = session["user_id"]
+    if request.method == "POST":
+        content = request.form.get("content")
+        if content.strip():  
+            new_entry = Journal(user_id=user_id, content=content.strip())
+            db.session.add(new_entry)
+            db.session.commit()
+        return redirect("/journal")
+    entries = (
+        Journal.query.filter_by(user_id=user_id)
+        .order_by(Journal.created_at.desc())
+        .all()
+    )
+    return render_template("journal.html", entries=entries)
+
+@app.route("/delete-entry", methods = ["POST"])
+def delete_entry():
+    data = request.get_json()
+    entry_id = int(data["entry_id"])
+    entry = Journal.query.filter_by(id=entry_id).first()
+    if entry:
+        db.session.delete(entry)
+        db.session.commit()
+    return jsonify({"success": True})
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -213,7 +262,7 @@ def login():
         is_valid = bcrypt.check_password_hash(hash, password)
         if not is_valid:
             return render_template("login.html",message="Incorrect password")
-        session["username"] = username
+        session["user_id"] = user.id
         return redirect("/home")        
     # User reached route via GET (as by clicking a link or via redirect)
     return render_template("login.html")

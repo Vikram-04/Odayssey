@@ -1,4 +1,6 @@
-{% extends "layout.html" %} {% block title %}Todo{% endblock %} {% block body %}
+{% extends "layout.html" %} {% block title %}To-do{% endblock %} {% block body
+%}
+<h1 class="container pt-4 pb-2 text-center">To-do List</h1>
 <form action="/todo" method="post" class="task-form p-3 mt-5">
   <div class="form-group">
     <input
@@ -48,7 +50,7 @@
         .then((data) => {
           task.classList.remove("todo-task");
           task.classList.add("task-done");
-          let newTask = task.cloneNode(true);
+          let newTask = task.cloneNode(true); //AI-assisted:to remove task from completed without refresh
           newTask.addEventListener("click", () => {
             fetch("/remove_task", {
               method: "POST",

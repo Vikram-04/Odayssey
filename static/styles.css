@@ -106,7 +106,7 @@ nav {
 .nav-links a.active::after {
   transform: scaleX(1);
 }
-
+/* AI-assisted: Hamburger for smaller screens */
 .hamburger {
   display: none;
   cursor: pointer;
@@ -316,8 +316,9 @@ label {
 
 /* Habits page */
 .quote {
+  margin-top: 2rem;
+  margin-left: 1rem;
   font-family: "Bebas Neue", sans-serif;
-  font-size: x-large;
 }
 
 #habit-grid td {
@@ -467,4 +468,47 @@ label {
     width: 90%;
     padding: 1rem;
   }
+}
+
+/* Journal */
+.journal-feed {
+  margin-top: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  max-width: 80%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.journal-entry {
+  background: #f9f9fc;
+  border: 1px solid #ddd;
+  padding: 1.25rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  line-height: 1.5;
+}
+
+.journal-entry .timestamp {
+  font-size: 0.85rem;
+  color: #888;
+  margin-bottom: 0.75rem;
+  display: block;
+}
+
+.journal-entry p {
+  margin: 0;
+  white-space: pre-wrap;
+}
+.journal-form {
+  width: 90%;
+  margin-left: 5%;
+  margin-right: 5%;
+}
+.journal-form textarea {
+  padding: 15px;
+  width: 100%;
+  height: 30vh;
+  border-radius: 6px;
 }

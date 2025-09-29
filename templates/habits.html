@@ -11,6 +11,7 @@
         placeholder="Habit"
         autocomplete="off"
         name="habit"
+        required
       />
     </div>
     <div class="form-group">
@@ -89,14 +90,16 @@
     </tbody>
   </table>
 </div>
+<h5 class="quote">"{{ quote.quote }}" - {{ quote.author }}</h5>
 
 <script>
+  // AI-assisted: To check if date is past or present
   function isSameOrBefore(d1, d2) {
     return d1.setHours(0, 0, 0, 0) <= d2.setHours(0, 0, 0, 0);
   }
   document.querySelectorAll(".habit-cell").forEach((cell) => {
     cell.addEventListener("click", () => {
-      const habitId = cell.dataset.habitId;
+      const habitId = cell.dataset.habitId; // AI-assisted: added dataset attributes (data-habit-id, data-day) to track which cell was clicked
       const dateStr = cell.dataset.date;
       const cellDate = new Date(dateStr);
       const today = new Date();
@@ -132,7 +135,7 @@
         .then((res) => res.json())
         .then((data) => {
           if (data.success) {
-            btn.closest("tr").remove();
+            btn.closest("tr").remove(); // AI-assisted:  Fix bug to remove only specific <tr> by using element.closest()
           }
         });
     });
