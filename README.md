@@ -79,6 +79,6 @@ Several design choices were made to balance **functionality, simplicity, and dem
    flask run
 4. Open a browser at http://127.0.0.1:5000/.
 
-#### Demo video link 🎥: Demo video will be added here soon.
+#### Demo video link 🎥: https://youtu.be/EsGTuj6IB4E
 
 #### Odayssey was built as part of CS50x Final Project, emphasizing practical functionality, usability, and a diary-like experience over unnecessary complexity. The design decisions reflect a balance between demonstrating full-stack capability and keeping the app maintainable and straightforward.
