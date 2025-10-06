@@ -70,8 +70,8 @@ Several design choices were made to balance **functionality, simplicity, and dem
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/Vikram-04/CS50-Final-Project.git
-   cd CS50-Final-Project
+   git clone https://github.com/Vikram-04/Odayssey.git
+   cd Odayssey
    ```
 2. Install dependencies:
    pip install -r requirements.txt
