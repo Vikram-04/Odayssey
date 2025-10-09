@@ -81,4 +81,7 @@ Several design choices were made to balance **functionality, simplicity, and dem
 
 #### Demo video link 🎥: https://youtu.be/EsGTuj6IB4E
 
+### Deployed using render
+#### Live Demo: https://odayssey.onrender.com/
+
 #### Odayssey was built as part of CS50x Final Project, emphasizing practical functionality, usability, and a diary-like experience over unnecessary complexity. The design decisions reflect a balance between demonstrating full-stack capability and keeping the app maintainable and straightforward.
