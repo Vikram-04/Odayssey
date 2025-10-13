@@ -37,5 +37,9 @@ def fetch_quote():
             "author":data["author"]
         }
     except Exception as e:
-        return "Successful people are simply those with successful habits. - Brian Tracy"
+        return {
+            "date": date.today(),
+            "quote": "Successful people are simply those with successful habits.",
+            "author": "Brian Tracy"
+        }
  
