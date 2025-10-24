@@ -3,4 +3,3 @@ flask-session
 flask_bcrypt
 flask_sqlalchemy
 requests
-gunicorn
