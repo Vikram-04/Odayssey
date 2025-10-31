@@ -1,0 +1,166 @@
+{% extends "layout.html" %} {% block title %}Important Dates{% endblock %} {%
+block body %} {% if reminder %}
+<div
+  class="reminder-banner"
+  id="reminder-banner"
+  data-reminder-id="{{ reminder.id }}"
+>
+  <button
+    class="dismiss-reminder"
+    onclick="dismissReminder({{ reminder.id }})"
+    title="Dismiss"
+  >
+    ✕
+  </button>
+  ⏰ Reminder: <strong>{{ reminder.title }}</strong> is due {% if
+  reminder.days_left == 0 %} TODAY! {% elif reminder.days_left == 1 %} TOMORROW!
+  {% else %} in {{ reminder.days_left }} days! {% endif %}
+</div>
+{% endif %}
+
+<h1 class="container pt-4 pb-2 text-center">Important Dates</h1>
+<form action="/dates" method="post" class="date-form p-3 mt-5">
+  <div class="form-group">
+    <input
+      class="form-control"
+      type="text"
+      placeholder="Title"
+      autocomplete="off"
+      name="title"
+      required
+    />
+  </div>
+
+  <div class="form-group">
+    <input class="form-control" type="date" name="date" required />
+  </div>
+
+  <div class="form-group">
+    <button class="btn btn-primary">Add Date</button>
+  </div>
+</form>
+
+<div class="dates-container mt-5">
+  <table class="dates-table">
+    <thead>
+      <tr>
+        <th>Title</th>
+        <th>Date</th>
+        <th>Days Left</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for date in dates %}
+      <tr data-date-id="{{ date.id }}">
+        <td class="date-title">{{ date.title }}</td>
+        <td class="date-value">{{ date.date.strftime('%Y-%m-%d') }}</td>
+        <td class="days-left">
+          {% if date.days_left < 0 %}
+          <span class="past-date">{{ date.days_left * -1 }} days ago</span>
+          {% elif date.days_left == 0 %}
+          <span class="today">TODAY</span>
+          {% else %}
+          <span class="upcoming">{{ date.days_left }} days</span>
+          {% endif %}
+        </td>
+        <td class="actions">
+          <button
+            class="btn btn-sm btn-danger delete-btn"
+            onclick="deleteDate({{ date.id }})"
+          >
+            Delete
+          </button>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<script>
+  // Check if reminder should be shown (not dismissed today)
+  function shouldShowReminder(reminderId) {
+    const dismissedData = localStorage.getItem("dismissedReminder");
+    if (!dismissedData) return true;
+
+    const { id, date } = JSON.parse(dismissedData);
+    const today = new Date().toDateString();
+
+    // Show if it's a different reminder or a new day
+    return id !== reminderId || date !== today;
+  }
+
+  // Dismiss reminder
+  function dismissReminder(reminderId) {
+    const banner = document.getElementById("reminder-banner");
+    banner.style.display = "none";
+
+    // Store dismissed reminder with today's date
+    localStorage.setItem(
+      "dismissedReminder",
+      JSON.stringify({
+        id: reminderId,
+        date: new Date().toDateString(),
+      })
+    );
+  }
+
+  // Check on page load if reminder should be hidden
+  window.addEventListener("DOMContentLoaded", () => {
+    const banner = document.getElementById("reminder-banner");
+    if (banner) {
+      const reminderId = parseInt(banner.dataset.reminderId);
+      if (!shouldShowReminder(reminderId)) {
+        banner.style.display = "none";
+      }
+    }
+  });
+
+  function editDate(dateId) {
+    const row = document.querySelector(`tr[data-date-id="${dateId}"]`);
+    const titleCell = row.querySelector(".date-title");
+    const dateCell = row.querySelector(".date-value");
+
+    const currentTitle = titleCell.textContent;
+    const currentDate = dateCell.textContent;
+
+    const newTitle = prompt("Enter new title:", currentTitle);
+    if (newTitle === null) return; // User cancelled
+
+    const newDate = prompt("Enter new date (YYYY-MM-DD):", currentDate);
+    if (newDate === null) return; // User cancelled
+
+    fetch("/edit_date", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        date_id: dateId,
+        title: newTitle || currentTitle,
+        date: newDate || currentDate,
+      }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
+          location.reload();
+        }
+      });
+  }
+
+  function deleteDate(dateId) {
+    fetch("/delete_date", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ date_id: dateId }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
+          const row = document.querySelector(`tr[data-date-id="${dateId}"]`);
+          row.remove();
+        }
+      });
+  }
+</script>
+{% endblock %}

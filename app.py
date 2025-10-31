@@ -57,6 +57,8 @@ class Task(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable = False)
     task = db.Column(db.String(100), nullable=False)
     done = db.Column(db.Boolean, default=False, nullable=False)
+    priority = db.Column(db.String(10), nullable=False, default='Medium')
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     def __repr__(self):
         return f'{self.task}'
     
@@ -73,6 +75,13 @@ class Quote(db.Model):
     date = db.Column(db.Date, unique=True, nullable=False)
     quote = db.Column(db.String, nullable=False)
     author = db.Column(db.String, nullable=True)
+
+class ImportantDate(db.Model):
+    __tablename__ = "important_dates"
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    title = db.Column(db.String(100), nullable=False)
+    date = db.Column(db.Date, nullable=False)
 
 with app.app_context():
     db.create_all()
@@ -136,13 +145,27 @@ def home():
         db.session.add(new_quote)
         db.session.commit()
         quote = Quote.query.filter_by(date=date_today).first()
+    
+    # Check for upcoming important dates (within 2 days)
+    reminder = None
+    important_dates = ImportantDate.query.filter_by(user_id=user_id).all()
+    for d in important_dates:
+        days_left = (d.date - date_today).days
+        if 0 <= days_left <= 2:
+            reminder = {
+                'id': d.id,
+                'title': d.title,
+                'days_left': days_left
+            }
+            break
+    
     return render_template("habits.html",
                            habits=habits_past,
                            days_in_month=days_in_month,
                               logs_dict=logs_dict,
                            month_name = calendar.month_name[today.month],
                            date=today,
-                           today=today.day,dates=dates,quote=quote)
+                           today=today.day,dates=dates,quote=quote,reminder=reminder)
 
 @app.route("/toggle_habit", methods=["POST"])
 def toggle_habit():
@@ -180,11 +203,15 @@ def todo():
     user_id  = session["user_id"]
     if request.method == "POST":
         task = request.form.get("task")
-        new_task = Task(user_id=user_id, task=task)
+        priority = request.form.get("priority", "Medium")
+        new_task = Task(user_id=user_id, task=task, priority=priority)
         db.session.add(new_task)
         db.session.commit()
         return redirect("/todo")
+    # Sort by priority (High > Medium > Low), then by creation date
+    priority_order = {'High': 1, 'Medium': 2, 'Low': 3}
     tasks = Task.query.filter_by(user_id=user_id).all()
+    tasks.sort(key=lambda x: (priority_order.get(x.priority, 2), x.created_at))
     return render_template("todo.html",tasks=tasks)
 
 @app.route("/mark_done", methods=["POST"])
@@ -210,6 +237,71 @@ def clear_all_tasks():
     user_id  = session["user_id"]
     Task.query.filter_by(user_id=user_id, done=True).delete()
     db.session.commit()
+    return jsonify({"success": True})
+
+@app.route("/dates", methods=["GET", "POST"])
+@login_required
+def dates():
+    user_id = session["user_id"]
+    if request.method == "POST":
+        title = request.form.get("title")
+        date_str = request.form.get("date")
+        if title and date_str:
+            date_obj = datetime.strptime(date_str, "%Y-%m-%d").date()
+            new_date = ImportantDate(user_id=user_id, title=title, date=date_obj)
+            db.session.add(new_date)
+            db.session.commit()
+        return redirect("/dates")
+    
+    # Get all important dates for user
+    important_dates = ImportantDate.query.filter_by(user_id=user_id).all()
+    
+    # Sort by nearest upcoming date
+    today = date.today()
+    upcoming_dates = []
+    for d in important_dates:
+        days_left = (d.date - today).days
+        upcoming_dates.append({
+            'id': d.id,
+            'title': d.title,
+            'date': d.date,
+            'days_left': days_left
+        })
+    upcoming_dates.sort(key=lambda x: (x['date'] < today, abs(x['days_left'])))
+    
+    # Check for reminders (events within 2 days)
+    reminder = None
+    for d in upcoming_dates:
+        if 0 <= d['days_left'] <= 2:
+            reminder = d
+            break
+    
+    return render_template("dates.html", dates=upcoming_dates, reminder=reminder)
+
+@app.route("/edit_date", methods=["POST"])
+def edit_date():
+    data = request.get_json()
+    date_id = int(data["date_id"])
+    title = data.get("title")
+    date_str = data.get("date")
+    
+    important_date = ImportantDate.query.filter_by(id=date_id).first()
+    if important_date:
+        if title:
+            important_date.title = title
+        if date_str:
+            important_date.date = datetime.strptime(date_str, "%Y-%m-%d").date()
+        db.session.commit()
+    return jsonify({"success": True})
+
+@app.route("/delete_date", methods=["POST"])
+def delete_date():
+    data = request.get_json()
+    date_id = int(data["date_id"])
+    important_date = ImportantDate.query.filter_by(id=date_id).first()
+    if important_date:
+        db.session.delete(important_date)
+        db.session.commit()
     return jsonify({"success": True})
 
 @app.route("/journal", methods=["GET", "POST"])

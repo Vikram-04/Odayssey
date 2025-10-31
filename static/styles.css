@@ -512,3 +512,125 @@ label {
   height: 30vh;
   border-radius: 6px;
 }
+
+/* Important Dates */
+.reminder-banner {
+  background-color: #fff3cd;
+  border: 2px solid #ffc107;
+  border-radius: 8px;
+  padding: 1rem;
+  margin: 1rem auto;
+  max-width: 80%;
+  text-align: center;
+  font-size: 1.1rem;
+  color: #856404;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+
+.dismiss-reminder {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  background: transparent;
+  border: none;
+  font-size: 1.5rem;
+  color: #856404;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  line-height: 1;
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
+}
+
+.dismiss-reminder:hover {
+  opacity: 1;
+}
+
+.date-form {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  gap: 1.5rem;
+}
+
+.dates-container {
+  max-width: 80%;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+.dates-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.dates-table thead {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.dates-table th,
+.dates-table td {
+  padding: 1rem;
+  text-align: left;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.dates-table tbody tr:hover {
+  background-color: #f8f9fa;
+}
+
+.dates-table .actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.past-date {
+  color: #999;
+  font-style: italic;
+}
+
+.today {
+  color: #dc3545;
+  font-weight: bold;
+}
+
+.upcoming {
+  color: #28a745;
+  font-weight: 600;
+}
+
+@media (max-width: 768px) {
+  .date-form {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .dates-table {
+    font-size: 0.85rem;
+  }
+
+  .dates-table th,
+  .dates-table td {
+    padding: 0.5rem;
+  }
+
+  .dates-table .actions {
+    flex-direction: column;
+  }
+}
+
+/* Todo Priority Indicators */
+.priority-dot {
+  margin-right: 0.5rem;
+  font-size: 1rem;
+}
+
+#todo-list {
+  list-style-type: none;
+}

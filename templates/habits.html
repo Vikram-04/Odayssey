@@ -1,5 +1,22 @@
 {% extends "layout.html" %} {% block title %} Habit Tracker{% endblock %}
-{%block body %}
+{%block body %} {% if reminder %}
+<div
+  class="reminder-banner"
+  id="reminder-banner"
+  data-reminder-id="{{ reminder.id }}"
+>
+  <button
+    class="dismiss-reminder"
+    onclick="dismissReminder({{ reminder.id }})"
+    title="Dismiss"
+  >
+    ✕
+  </button>
+  ⏰ Reminder: <strong>{{ reminder.title }}</strong> is due {% if
+  reminder.days_left == 0 %} TODAY! {% elif reminder.days_left == 1 %} TOMORROW!
+  {% else %} in {{ reminder.days_left }} days! {% endif %}
+</div>
+{% endif %}
 
 <h1 class="container pt-4 pb-2 text-center">HABIT TRACKER</h1>
 <div class="habit-form-container">
@@ -93,6 +110,44 @@
 <h5 class="quote">"{{ quote.quote }}" - {{ quote.author }}</h5>
 
 <script>
+  // Check if reminder should be shown (not dismissed today)
+  function shouldShowReminder(reminderId) {
+    const dismissedData = localStorage.getItem("dismissedReminder");
+    if (!dismissedData) return true;
+
+    const { id, date } = JSON.parse(dismissedData);
+    const today = new Date().toDateString();
+
+    // Show if it's a different reminder or a new day
+    return id !== reminderId || date !== today;
+  }
+
+  // Dismiss reminder
+  function dismissReminder(reminderId) {
+    const banner = document.getElementById("reminder-banner");
+    banner.style.display = "none";
+
+    // Store dismissed reminder with today's date
+    localStorage.setItem(
+      "dismissedReminder",
+      JSON.stringify({
+        id: reminderId,
+        date: new Date().toDateString(),
+      })
+    );
+  }
+
+  // Check on page load if reminder should be hidden
+  window.addEventListener("DOMContentLoaded", () => {
+    const banner = document.getElementById("reminder-banner");
+    if (banner) {
+      const reminderId = parseInt(banner.dataset.reminderId);
+      if (!shouldShowReminder(reminderId)) {
+        banner.style.display = "none";
+      }
+    }
+  });
+
   // AI-assisted: To check if date is past or present
   function isSameOrBefore(d1, d2) {
     return d1.setHours(0, 0, 0, 0) <= d2.setHours(0, 0, 0, 0);
