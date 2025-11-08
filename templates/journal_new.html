@@ -1,0 +1,128 @@
+{% extends "layout.html" %} {% block title %}New Journal Entry{% endblock %} {%
+block body %}
+<div class="container pt-4 pb-4">
+  <h1 class="text-center mb-4">How are you feeling?</h1>
+
+  <div
+    class="mood-selection-container"
+    style="max-width: 800px; margin: 0 auto"
+  >
+    <!-- Search Bar -->
+    <div class="form-group mb-4">
+      <input
+        type="text"
+        id="mood-search"
+        class="form-control"
+        placeholder="Search for a mood..."
+        autocomplete="off"
+      />
+    </div>
+
+    <!-- Common Moods -->
+    <div class="mb-4">
+      <h3 class="mb-3">Quick Select</h3>
+      <div class="d-flex flex-wrap" id="common-moods">
+        {% for mood in common_moods %}
+        <button
+          class="btn btn-lg btn-outline-primary mood-btn mr-2 mb-2"
+          data-mood="{{ mood }}"
+        >
+          {{ mood }}
+        </button>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- All Moods -->
+    <div class="mb-4">
+      <h3 class="mb-3">All Moods</h3>
+      <div class="d-flex flex-wrap" id="all-moods">
+        {% for mood in all_moods %}
+        <button
+          class="btn btn-outline-secondary mood-btn mr-2 mb-2"
+          data-mood="{{ mood }}"
+        >
+          {{ mood }}
+        </button>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Loading indicator -->
+    <div id="loading" class="text-center" style="display: none">
+      <div class="spinner-border" role="status">
+        <span class="sr-only">Generating prompt...</span>
+      </div>
+      <p class="mt-2">Generating your personalized prompt...</p>
+    </div>
+  </div>
+</div>
+
+<script>
+  const moodSearch = document.getElementById("mood-search");
+  const allMoodsContainer = document.getElementById("all-moods");
+  const moodButtons = document.querySelectorAll(".mood-btn");
+  const loading = document.getElementById("loading");
+
+  // Live search filtering
+  moodSearch.addEventListener("input", (e) => {
+    const searchTerm = e.target.value.toLowerCase();
+    moodButtons.forEach((btn) => {
+      const mood = btn.dataset.mood.toLowerCase();
+      if (mood.includes(searchTerm)) {
+        btn.style.display = "inline-block";
+      } else {
+        btn.style.display = "none";
+      }
+    });
+  });
+
+  // Mood selection handler
+  moodButtons.forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const mood = btn.dataset.mood;
+
+      // Disable all buttons and show loading
+      moodButtons.forEach((b) => (b.disabled = true));
+      loading.style.display = "block";
+
+      try {
+        // Generate prompt
+        const response = await fetch("/journal/generate-prompt", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ mood: mood }),
+        });
+
+        const data = await response.json();
+
+        if (data.prompt) {
+          // Redirect to write page with mood and prompt
+          window.location.href = `/journal/write?mood=${encodeURIComponent(
+            mood
+          )}&prompt=${encodeURIComponent(data.prompt)}`;
+        } else {
+          alert("Failed to generate prompt. Please try again.");
+          moodButtons.forEach((b) => (b.disabled = false));
+          loading.style.display = "none";
+        }
+      } catch (error) {
+        console.error("Error:", error);
+        alert("An error occurred. Please try again.");
+        moodButtons.forEach((b) => (b.disabled = false));
+        loading.style.display = "none";
+      }
+    });
+  });
+</script>
+
+<style>
+  .mood-btn {
+    transition: all 0.3s ease;
+  }
+  .mood-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
+</style>
+{% endblock %}

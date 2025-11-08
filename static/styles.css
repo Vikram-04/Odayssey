@@ -488,6 +488,11 @@ label {
   border-radius: 8px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
   line-height: 1.5;
+  transition: box-shadow 0.3s ease;
+}
+
+.journal-entry:hover {
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
 .journal-entry .timestamp {
@@ -497,10 +502,30 @@ label {
   display: block;
 }
 
-.journal-entry p {
-  margin: 0;
+.journal-entry .entry-content {
+  margin: 0.5rem 0;
   white-space: pre-wrap;
+  word-wrap: break-word;
 }
+
+.journal-entry .prompt-preview {
+  padding: 0.75rem;
+  background: #f0f0f5;
+  border-left: 3px solid var(--primary-color);
+  border-radius: 4px;
+  margin: 0.5rem 0;
+}
+
+.journal-entry .badge {
+  font-size: 0.9rem;
+  padding: 0.4rem 0.8rem;
+}
+
+.entry-actions {
+  display: flex;
+  flex-wrap: wrap;
+}
+
 .journal-form {
   width: 90%;
   margin-left: 5%;
@@ -511,6 +536,56 @@ label {
   width: 100%;
   height: 30vh;
   border-radius: 6px;
+}
+
+.mood-selection-container {
+  padding: 1rem;
+}
+
+.mood-btn {
+  margin: 0.25rem;
+  transition: all 0.3s ease;
+  border-radius: 20px;
+}
+
+.mood-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.mood-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.journal-write-container,
+.journal-edit-container {
+  padding: 1rem;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+@media (max-width: 768px) {
+  .journal-feed {
+    max-width: 95%;
+  }
+
+  .entry-actions {
+    flex-direction: column;
+    width: 100%;
+    margin-top: 0.5rem;
+  }
+
+  .entry-actions .btn {
+    width: 100%;
+    margin-right: 0 !important;
+    margin-bottom: 0.5rem;
+  }
+
+  .mood-selection-container {
+    padding: 0.5rem;
+  }
 }
 
 /* Important Dates */

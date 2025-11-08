@@ -1,49 +1,68 @@
-{% extends "layout.html" %}{% block title %}Journal{% endblock %} {% block body
+{% extends "layout.html" %} {% block title %}Journal{% endblock %} {% block body
 %}
-<h1 class="container pt-4 pb-2 text-center">Journal</h1>
+<div class="container pt-4 pb-2">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="mb-0">Journal</h1>
+    <a href="/journal/new" class="btn btn-primary">New Entry</a>
+  </div>
 
-<form action="/journal" method="POST" class="journal-form">
-  <div class="form-group">
-    <textarea
-      name="content"
-      placeholder="Write your thoughts..."
-      rows="4"
-      required
-    ></textarea>
+  <div class="journal-feed">
+    {% for entry in entries %}
+    <div class="journal-entry">
+      <div class="d-flex justify-content-between align-items-start mb-2">
+        <div>
+          <p class="timestamp mb-1">{{ entry.date.strftime("%Y-%m-%d") }}</p>
+          <span class="badge badge-secondary">{{ entry.mood }}</span>
+        </div>
+        <div class="entry-actions">
+          <a
+            href="/journal/edit/{{ entry.id }}"
+            class="btn btn-sm btn-outline-primary mr-2 mb-2"
+            >📝 Edit</a
+          >
+          <button
+            class="btn btn-sm btn-outline-danger entry-del mb-2"
+            data-entry-id="{{ entry.id }}"
+          >
+            🗑️ Delete
+          </button>
+        </div>
+      </div>
+      <div class="prompt-preview mb-2">
+        <small class="text-muted"
+          ><strong>Prompt:</strong> {{ entry.prompt }}</small
+        >
+      </div>
+      <p class="entry-content">
+        {{ entry.content[:100] }}{% if entry.content|length > 100 %}...{% endif
+        %}
+      </p>
+    </div>
+    {% else %}
+    <div class="text-center py-5">
+      <p class="text-muted">No entries yet. Start your journaling journey!</p>
+      <a href="/journal/new" class="btn btn-primary">Create Your First Entry</a>
+    </div>
+    {% endfor %}
   </div>
-  <div class="form-group">
-    <button class="btn btn-primary" type="submit">Save Entry</button>
-  </div>
-</form>
-
-<div class="journal-feed">
-  {% for entry in entries %}
-  <div class="journal-entry">
-    <p class="timestamp">{{ entry.created_at.strftime("%Y-%m-%d %H:%M") }}</p>
-    <p>{{ entry.content }}</p>
-    <button class="btn btn-secondary entry-del" data-entry-id="{{ entry.id }}">
-      DELETE
-    </button>
-  </div>
-  {% else %}
-  <p>No entries yet.</p>
-  {% endfor %}
 </div>
+
 <script>
   document.querySelectorAll(".entry-del").forEach((btn) => {
     btn.addEventListener("click", () => {
-      const entryId = btn.dataset.entryId;
-      fetch("/delete-entry", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ entry_id: entryId }),
-      })
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.success) {
-            btn.closest(".journal-entry").remove();
-          }
-        });
+      if (confirm("Are you sure you want to delete this entry?")) {
+        const entryId = btn.dataset.entryId;
+        fetch(`/journal/delete/${entryId}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.success) {
+              btn.closest(".journal-entry").remove();
+            }
+          });
+      }
     });
   });
 </script>

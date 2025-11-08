@@ -1,11 +1,14 @@
 from flask import Flask,request,redirect,render_template,session, jsonify
 from flask_bcrypt import Bcrypt
 from flask_session import Session
-from helpers import login_required, isPast, isActive, fetch_quote
+from helpers import login_required, isPast, isActive, fetch_quote, generate_journal_prompt
 from flask_sqlalchemy import SQLAlchemy
 import re
 from datetime import date, datetime
 import calendar
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = Flask(__name__)
 
@@ -29,6 +32,7 @@ class User(db.Model):
     hash = db.Column(db.String(120), nullable=False)
     habits = db.relationship('Habit', backref='users', lazy=True) # AI-assisted: Using relationships from sqlalchemy
     tasks = db.relationship('Task', backref='users', lazy=True)
+    journal_entries = db.relationship('JournalEntry', backref='users', lazy=True)
     
 
 class Habit(db.Model):
@@ -62,12 +66,14 @@ class Task(db.Model):
     def __repr__(self):
         return f'{self.task}'
     
-class Journal(db.Model):
-    __tablename__ = "journals"
+class JournalEntry(db.Model):
+    __tablename__ = "journal_entries"
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    date = db.Column(db.Date, default=date.today, nullable=False)
+    mood = db.Column(db.String(50), nullable=False)
+    prompt = db.Column(db.Text, nullable=False)
     content = db.Column(db.Text, nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
 class Quote(db.Model):
     __tablename__ = "quotes"
@@ -85,7 +91,6 @@ class ImportantDate(db.Model):
 
 with app.app_context():
     db.create_all()
-    
 
 @app.route("/")
 def index():
@@ -304,33 +309,107 @@ def delete_date():
         db.session.commit()
     return jsonify({"success": True})
 
-@app.route("/journal", methods=["GET", "POST"])
+@app.route("/journal")
 @login_required
 def journal():
-    user_id  = session["user_id"]
-    if request.method == "POST":
-        content = request.form.get("content")
-        if content.strip():  
-            new_entry = Journal(user_id=user_id, content=content.strip())
-            db.session.add(new_entry)
-            db.session.commit()
-        return redirect("/journal")
+    """Display all journal entries sorted by date (newest first)"""
+    user_id = session["user_id"]
     entries = (
-        Journal.query.filter_by(user_id=user_id)
-        .order_by(Journal.created_at.desc())
+        JournalEntry.query.filter_by(user_id=user_id)
+        .order_by(JournalEntry.date.desc(), JournalEntry.id.desc())
         .all()
     )
     return render_template("journal.html", entries=entries)
 
-@app.route("/delete-entry", methods = ["POST"])
-def delete_entry():
+@app.route("/journal/new")
+@login_required
+def journal_new():
+    """Mood selection page"""
+    common_moods = ['Happy', 'Sad', 'Anxious', 'Motivated']
+    all_moods = [
+        'Happy', 'Sad', 'Anxious', 'Motivated', 'Calm', 'Frustrated', 
+        'Grateful', 'Tired', 'Excited', 'Nervous', 'Peaceful', 'Stressed',
+        'Content', 'Lonely', 'Energetic', 'Overwhelmed', 'Hopeful', 'Disappointed',
+        'Proud', 'Confused', 'Relaxed', 'Worried', 'Joyful', 'Melancholy'
+    ]
+    return render_template("journal_new.html", common_moods=common_moods, all_moods=all_moods)
+
+@app.route("/journal/generate-prompt", methods=["POST"])
+@login_required
+def generate_prompt():
+    """Generate AI prompt for selected mood"""
     data = request.get_json()
-    entry_id = int(data["entry_id"])
-    entry = Journal.query.filter_by(id=entry_id).first()
+    mood = data.get("mood")
+    if not mood:
+        return jsonify({"error": "Mood is required"}), 400
+    
+    prompt = generate_journal_prompt(mood)
+    return jsonify({"prompt": prompt, "mood": mood})
+
+@app.route("/journal/write", methods=["GET", "POST"])
+@login_required
+def journal_write():
+    """Entry editor page"""
+    user_id = session["user_id"]
+    if request.method == "POST":
+        mood = request.form.get("mood")
+        prompt = request.form.get("prompt")
+        content = request.form.get("content")
+        
+        if mood and prompt and content.strip():
+            new_entry = JournalEntry(
+                user_id=user_id,
+                mood=mood,
+                prompt=prompt,
+                content=content.strip(),
+                date=date.today()
+            )
+            db.session.add(new_entry)
+            db.session.commit()
+            return redirect("/journal")
+        else:
+            return render_template("journal_write.html", 
+                                 mood=mood or request.args.get("mood", ""),
+                                 prompt=prompt or request.args.get("prompt", ""),
+                                 error="Please fill in all fields")
+    
+    # GET request - get mood and prompt from query params or session
+    mood = request.args.get("mood", "")
+    prompt = request.args.get("prompt", "")
+    return render_template("journal_write.html", mood=mood, prompt=prompt)
+
+@app.route("/journal/edit/<int:entry_id>", methods=["GET", "POST"])
+@login_required
+def journal_edit(entry_id):
+    """Edit existing journal entry"""
+    user_id = session["user_id"]
+    entry = JournalEntry.query.filter_by(id=entry_id, user_id=user_id).first()
+    
+    if not entry:
+        return redirect("/journal")
+    
+    if request.method == "POST":
+        content = request.form.get("content")
+        if content.strip():
+            entry.content = content.strip()
+            db.session.commit()
+            return redirect("/journal")
+        else:
+            return render_template("journal_edit.html", entry=entry, error="Content cannot be empty")
+    
+    return render_template("journal_edit.html", entry=entry)
+
+@app.route("/journal/delete/<int:entry_id>", methods=["POST"])
+@login_required
+def delete_entry(entry_id):
+    """Delete journal entry"""
+    user_id = session["user_id"]
+    entry = JournalEntry.query.filter_by(id=entry_id, user_id=user_id).first()
     if entry:
         db.session.delete(entry)
         db.session.commit()
-    return jsonify({"success": True})
+        return jsonify({"success": True})
+    return jsonify({"success": False, "error": "Entry not found"}), 404
 
 @app.route("/login", methods=["GET", "POST"])
 def login():

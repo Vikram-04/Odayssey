@@ -3,4 +3,5 @@ __pycache__
 flask_session
 .flaskenv
 instance/
+.env
 upgrade.txt

@@ -1,0 +1,61 @@
+{% extends "layout.html" %} {% block title %}Write Journal Entry{% endblock %}
+{% block body %}
+<div class="container pt-4 pb-4">
+  <h1 class="text-center mb-4">Write Your Entry</h1>
+
+  <div class="journal-write-container" style="max-width: 800px; margin: 0 auto">
+    {% if error %}
+    <div class="alert alert-danger" role="alert">{{ error }}</div>
+    {% endif %}
+
+    <form action="/journal/write" method="POST">
+      <!-- Mood Display (readonly) -->
+      <div class="form-group">
+        <label for="mood"><strong>Mood:</strong></label>
+        <input
+          type="text"
+          id="mood"
+          name="mood"
+          class="form-control"
+          value="{{ mood }}"
+          readonly
+          style="background-color: #f8f9fa"
+        />
+      </div>
+
+      <!-- Prompt Display (readonly) -->
+      <div class="form-group">
+        <label for="prompt"><strong>Prompt:</strong></label>
+        <textarea
+          id="prompt"
+          name="prompt"
+          class="form-control"
+          rows="3"
+          readonly
+          style="background-color: #f8f9fa"
+        >
+{{ prompt }}</textarea
+        >
+      </div>
+
+      <!-- Content Editor -->
+      <div class="form-group">
+        <label for="content"><strong>Your Entry:</strong></label>
+        <textarea
+          id="content"
+          name="content"
+          class="form-control"
+          rows="12"
+          placeholder="Write your thoughts here..."
+          required
+        ></textarea>
+      </div>
+
+      <div class="d-flex justify-content-between">
+        <a href="/journal" class="btn btn-secondary">Cancel</a>
+        <button type="submit" class="btn btn-primary">Save Entry</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
