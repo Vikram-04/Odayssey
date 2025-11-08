@@ -8,50 +8,164 @@
 
   <div class="journal-feed">
     {% for entry in entries %}
-    <div class="journal-entry">
-      <div class="d-flex justify-content-between align-items-start mb-2">
-        <div>
-          <p class="timestamp mb-1">{{ entry.date.strftime("%Y-%m-%d") }}</p>
-          <span class="badge badge-secondary">{{ entry.mood }}</span>
+    <div class="journal-entry-card" data-entry-id="{{ entry.id }}">
+      <div class="journal-entry-header">
+        <div class="journal-entry-meta">
+          <p class="journal-entry-date">
+            <span class="date-icon">📅</span>
+            {{ entry.date.strftime("%B %d, %Y") }}
+          </p>
+          <span class="journal-mood-badge mood-{{ entry.mood.lower() }}"
+            >{{ entry.mood }}</span
+          >
         </div>
         <div class="entry-actions">
           <a
             href="/journal/edit/{{ entry.id }}"
-            class="btn btn-sm btn-outline-primary mr-2 mb-2"
-            >📝 Edit</a
+            class="btn btn-sm btn-outline-primary mr-2"
+            title="Edit entry"
+            >✏️ Edit</a
           >
           <button
-            class="btn btn-sm btn-outline-danger entry-del mb-2"
+            class="btn btn-sm btn-outline-danger entry-del"
             data-entry-id="{{ entry.id }}"
+            title="Delete entry"
           >
             🗑️ Delete
           </button>
         </div>
       </div>
-      <div class="prompt-preview mb-2">
-        <small class="text-muted"
-          ><strong>Prompt:</strong> {{ entry.prompt }}</small
-        >
+      <div class="journal-entry-body">
+        <div class="prompt-section">
+          <div class="prompt-icon">💭</div>
+          <div class="prompt-text">{{ entry.prompt }}</div>
+        </div>
+        <div class="entry-preview">
+          <p class="entry-content-preview">
+            {{ entry.content[:150] }}{% if entry.content|length > 150 %}...{%
+            endif %}
+          </p>
+          {% if entry.content|length > 150 %}
+          <span class="read-more-link">Click to read more →</span>
+          {% endif %}
+        </div>
       </div>
-      <p class="entry-content">
-        {{ entry.content[:100] }}{% if entry.content|length > 100 %}...{% endif
-        %}
-      </p>
     </div>
     {% else %}
-    <div class="text-center py-5">
-      <p class="text-muted">No entries yet. Start your journaling journey!</p>
-      <a href="/journal/new" class="btn btn-primary">Create Your First Entry</a>
+    <div class="text-center py-5 empty-journal">
+      <div class="empty-icon">📔</div>
+      <p class="text-muted mt-3">
+        No entries yet. Start your journaling journey!
+      </p>
+      <a href="/journal/new" class="btn btn-primary mt-2"
+        >Create Your First Entry</a
+      >
     </div>
     {% endfor %}
   </div>
 </div>
 
+<!-- Modal for viewing full entry -->
+<div
+  class="modal fade"
+  id="entryModal"
+  tabindex="-1"
+  role="dialog"
+  aria-labelledby="entryModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="entryModalLabel">
+          <span id="modal-date"></span>
+          <span id="modal-mood" class="ml-2"></span>
+        </h5>
+        <button
+          type="button"
+          class="close"
+          data-dismiss="modal"
+          aria-label="Close"
+        >
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-prompt-section mb-3">
+          <strong>💭 Prompt:</strong>
+          <p id="modal-prompt" class="mt-2"></p>
+        </div>
+        <div class="modal-content-section">
+          <strong>📝 Your Entry:</strong>
+          <p id="modal-content" class="mt-2"></p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">
+          Close
+        </button>
+        <a id="modal-edit-link" href="#" class="btn btn-primary">Edit Entry</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-  document.querySelectorAll(".entry-del").forEach((btn) => {
-    btn.addEventListener("click", () => {
+  // Wait for DOM and jQuery to be ready
+  $(document).ready(function() {
+    // Store entry data
+    const entryData = {
+      {% for entry in entries %}
+      {{ entry.id }}: {
+        date: "{{ entry.date.strftime('%B %d, %Y') }}",
+        mood: "{{ entry.mood }}",
+        prompt: {{ entry.prompt|tojson }},
+        content: {{ entry.content|tojson }}
+      }{% if not loop.last %},{% endif %}
+      {% endfor %}
+    };
+
+    // Handle card clicks to show full entry
+    $(".journal-entry-card").on("click", function(e) {
+      const $card = $(this);
+      const $target = $(e.target);
+
+      // Don't trigger if clicking on action buttons, links, or inside entry-actions
+      if ($target.closest(".entry-actions").length > 0) {
+        e.stopPropagation();
+        return;
+      }
+
+      // Don't trigger on direct clicks on buttons or links
+      if ($target.is("a, button") || $target.closest("a, button").length > 0) {
+        return;
+      }
+
+      const entryId = $card.attr("data-entry-id");
+      const entry = entryData[entryId];
+
+      if (entry) {
+        $("#modal-date").text(entry.date);
+        $("#modal-mood").text(entry.mood);
+        $("#modal-mood").removeClass().addClass("ml-2 journal-mood-badge mood-" + entry.mood.toLowerCase().replace(/\s+/g, '-'));
+        $("#modal-prompt").text(entry.prompt);
+        $("#modal-content").text(entry.content).css("white-space", "pre-wrap");
+        $("#modal-edit-link").attr("href", "/journal/edit/" + entryId);
+
+        $("#entryModal").modal("show");
+      }
+    });
+
+    // Handle delete button clicks
+    $(".entry-del").on("click", function(e) {
+      e.stopPropagation();
+      e.preventDefault();
+      const btn = $(this);
+      const entryId = btn.attr("data-entry-id") || btn.data("entry-id");
+
       if (confirm("Are you sure you want to delete this entry?")) {
-        const entryId = btn.dataset.entryId;
         fetch(`/journal/delete/${entryId}`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -59,8 +173,25 @@
           .then((res) => res.json())
           .then((data) => {
             if (data.success) {
-              btn.closest(".journal-entry").remove();
+              // Remove the card with animation
+              const card = btn.closest(".journal-entry-card");
+              card.css({
+                "transition": "opacity 0.3s, transform 0.3s",
+                "opacity": "0",
+                "transform": "scale(0.95)"
+              });
+              setTimeout(function() {
+                card.remove();
+                // Remove from entryData
+                delete entryData[entryId];
+              }, 300);
+            } else {
+              alert("Failed to delete entry. Please try again.");
             }
+          })
+          .catch(function(error) {
+            console.error("Error deleting entry:", error);
+            alert("An error occurred while deleting the entry.");
           });
       }
     });
