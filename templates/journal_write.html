@@ -3,55 +3,84 @@
 <div class="container pt-4 pb-4">
   <h1 class="text-center mb-4">Write Your Entry</h1>
 
-  <div class="journal-write-container" style="max-width: 800px; margin: 0 auto">
+  <div class="journal-write-container" style="max-width: 900px; margin: 0 auto">
     {% if error %}
     <div class="alert alert-danger" role="alert">{{ error }}</div>
     {% endif %}
 
     <form action="/journal/write" method="POST">
-      <!-- Mood Display (readonly) -->
-      <div class="form-group">
-        <label for="mood"><strong>Mood:</strong></label>
-        <input
-          type="text"
-          id="mood"
-          name="mood"
-          class="form-control"
-          value="{{ mood }}"
-          readonly
-          style="background-color: #f8f9fa"
-        />
-      </div>
-
-      <!-- Prompt Display (readonly) -->
-      <div class="form-group">
-        <label for="prompt"><strong>Prompt:</strong></label>
-        <textarea
-          id="prompt"
-          name="prompt"
-          class="form-control"
-          rows="3"
-          readonly
-          style="background-color: #f8f9fa"
-        >
+      <!-- Mood and Prompt Display Section -->
+      <div class="row mb-4">
+        <div class="col-md-6">
+          <div class="form-group">
+            <label for="mood"><strong>Mood:</strong></label>
+            <input
+              type="text"
+              id="mood"
+              name="mood"
+              class="form-control"
+              value="{{ mood }}"
+              readonly
+              style="
+                background-color: #e8f4f8;
+                border: 1px solid #b3d9e8;
+                font-weight: 600;
+                color: #001f54;
+              "
+            />
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="form-group">
+            <label for="prompt"><strong>Journal Prompt:</strong></label>
+            <input
+              type="text"
+              id="prompt-display"
+              class="form-control"
+              value="{{ prompt }}"
+              readonly
+              style="
+                background-color: #e8f4f8;
+                border: 1px solid #b3d9e8;
+                font-style: italic;
+              "
+            />
+            <textarea id="prompt" name="prompt" class="d-none">
 {{ prompt }}</textarea
-        >
+            >
+          </div>
+        </div>
       </div>
 
-      <!-- Content Editor -->
+      <!-- Content Editor with Lined Background -->
       <div class="form-group">
         <label for="content"><strong>Your Entry:</strong></label>
         <textarea
           id="content"
           name="content"
           class="form-control"
-          rows="12"
           placeholder="Write your thoughts here..."
           required
+          style="
+            height: 400px;
+            background-image: linear-gradient(
+              to bottom,
+              transparent 0%,
+              transparent calc(100% - 2px),
+              #ccc 100%
+            );
+            background-size: 100% 30px;
+            background-position: 0 15px;
+            line-height: 30px;
+            padding: 20px 15px;
+            font-family: 'Poppins', serif;
+            resize: vertical;
+            border: 1px solid #d0d0d0;
+          "
         ></textarea>
       </div>
 
-      <div class="d-flex justify-content-between">
+      <div class="d-flex justify-content-between mt-4">
         <a href="/journal" class="btn btn-secondary">Cancel</a>
         <button type="submit" class="btn btn-primary">Save Entry</button>
       </div>

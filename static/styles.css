@@ -495,32 +495,13 @@ label {
   padding: 1.5rem;
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  transition: all 0.3s ease;
   cursor: pointer;
   position: relative;
   overflow: hidden;
 }
 
-.journal-entry-card::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 4px;
-  height: 100%;
-  background: var(--primary-color);
-  transform: scaleY(0);
-  transition: transform 0.3s ease;
-}
-
 .journal-entry-card:hover {
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
-  transform: translateY(-2px);
-  border-color: var(--primary-color);
-}
-
-.journal-entry-card:hover::before {
-  transform: scaleY(1);
+  background-color: #f5f5f5;
 }
 
 .journal-entry-header {
@@ -569,53 +550,6 @@ label {
   color: white;
   background: var(--primary-color);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-/* Mood-specific badge colors */
-.journal-mood-badge.mood-happy,
-.journal-mood-badge.mood-joyful,
-.journal-mood-badge.mood-excited {
-  background: linear-gradient(135deg, #28a745, #20c997);
-}
-
-.journal-mood-badge.mood-sad,
-.journal-mood-badge.mood-melancholy,
-.journal-mood-badge.mood-lonely {
-  background: linear-gradient(135deg, #6c757d, #495057);
-}
-
-.journal-mood-badge.mood-anxious,
-.journal-mood-badge.mood-nervous,
-.journal-mood-badge.mood-worried {
-  background: linear-gradient(135deg, #ffc107, #fd7e14);
-}
-
-.journal-mood-badge.mood-motivated,
-.journal-mood-badge.mood-energetic,
-.journal-mood-badge.mood-hopeful {
-  background: linear-gradient(135deg, #007bff, #6610f2);
-}
-
-.journal-mood-badge.mood-calm,
-.journal-mood-badge.mood-peaceful,
-.journal-mood-badge.mood-relaxed,
-.journal-mood-badge.mood-content {
-  background: linear-gradient(135deg, #17a2b8, #20c997);
-}
-
-.journal-mood-badge.mood-frustrated,
-.journal-mood-badge.mood-stressed,
-.journal-mood-badge.mood-overwhelmed {
-  background: linear-gradient(135deg, #dc3545, #e83e8c);
-}
-
-.journal-mood-badge.mood-grateful,
-.journal-mood-badge.mood-proud {
-  background: linear-gradient(135deg, #ff6b6b, #ffa500);
-}
-
-.journal-mood-badge.mood-tired {
-  background: linear-gradient(135deg, #6c757d, #868e96);
 }
 
 .journal-entry-body {
@@ -694,12 +628,6 @@ label {
 
 .entry-actions .btn {
   border-radius: 6px;
-  transition: all 0.2s ease;
-}
-
-.entry-actions .btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
 }
 
 .empty-journal {
@@ -743,39 +671,32 @@ label {
   margin-left: 5%;
   margin-right: 5%;
 }
+
 .journal-form textarea {
   padding: 15px;
   width: 100%;
   height: 30vh;
   border-radius: 6px;
-}
-
-.mood-selection-container {
-  padding: 1rem;
-}
-
-.mood-btn {
-  margin: 0.25rem;
-  transition: all 0.3s ease;
-  border-radius: 20px;
-}
-
-.mood-btn:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
-
-.mood-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    transparent calc(100% - 2px),
+    #ddd 100%
+  );
+  background-size: 100% 30px;
+  background-position: 0 12px;
+  line-height: 30px;
+  font-family: "Poppins", serif;
+  resize: vertical;
+  border: 1px solid #e0e0e0;
 }
 
 .journal-write-container,
 .journal-edit-container {
-  padding: 1rem;
-  background: #fff;
+  padding: 2rem;
+  background: linear-gradient(135deg, #f5f5f0 0%, #fafaf8 100%);
   border-radius: 8px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
 }
 
 @media (max-width: 768px) {

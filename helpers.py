@@ -75,8 +75,7 @@ def generate_journal_prompt(mood):
     }
     
     api_key = os.getenv('GEMINI_API_KEY')
-    if api_key:
-        api_key = api_key.strip()  # Remove any whitespace
+    
     
     if not api_key:
         # Return fallback prompt if API key is not set

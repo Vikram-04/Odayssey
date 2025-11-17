@@ -14,7 +14,6 @@
       <div class="journal-entry-header">
         <div class="journal-entry-meta">
           <p class="journal-entry-date">
-            <span class="date-icon">📅</span>
             {{ entry.date.strftime("%B %d, %Y") }}
           </p>
           <span class="journal-mood-badge mood-{{ entry.mood.lower() }}"
@@ -26,20 +25,19 @@
             href="/journal/edit/{{ entry.id }}"
             class="btn btn-sm btn-outline-primary mr-2"
             title="Edit entry"
-            >✏️ Edit</a
+            >Edit</a
           >
           <button
             class="btn btn-sm btn-outline-danger entry-del"
             data-entry-id="{{ entry.id }}"
             title="Delete entry"
           >
-            🗑️ Delete
+            Delete
           </button>
         </div>
       </div>
       <div class="journal-entry-body">
         <div class="prompt-section">
-          <div class="prompt-icon">💭</div>
           <div class="prompt-text">{{ entry.prompt }}</div>
         </div>
         <div class="entry-preview">
@@ -55,7 +53,6 @@
     </div>
     {% else %}
     <div class="text-center py-5 empty-journal">
-      <div class="empty-icon">📔</div>
       <p class="text-muted mt-3">
         No entries yet. Start your journaling journey!
       </p>
@@ -94,11 +91,11 @@
       </div>
       <div class="modal-body">
         <div class="modal-prompt-section mb-3">
-          <strong>💭 Prompt:</strong>
+          <strong>Prompt:</strong>
           <p id="modal-prompt" class="mt-2"></p>
         </div>
         <div class="modal-content-section">
-          <strong>📝 Your Entry:</strong>
+          <strong>Entry:</strong>
           <p id="modal-content" class="mt-2"></p>
         </div>
       </div>

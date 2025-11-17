@@ -18,21 +18,6 @@ block body %}
       />
     </div>
 
-    <!-- Common Moods -->
-    <div class="mb-4">
-      <h3 class="mb-3">Quick Select</h3>
-      <div class="d-flex flex-wrap" id="common-moods">
-        {% for mood in common_moods %}
-        <button
-          class="btn btn-lg btn-outline-primary mood-btn mr-2 mb-2"
-          data-mood="{{ mood }}"
-        >
-          {{ mood }}
-        </button>
-        {% endfor %}
-      </div>
-    </div>
-
     <!-- All Moods -->
     <div class="mb-4">
       <h3 class="mb-3">All Moods</h3>

@@ -19,9 +19,9 @@
     {% endblock %}
     <nav id="desktop-nav">
       {% if session["user_id"] %}
-      <a href="/home" class="logo"><img src="static/logo.png" alt="logo" /></a>
+      <a href="/home" class="logo"><img src="/static/logo.png" alt="logo" /></a>
       {% else %}
-      <a href="/" class="logo"><img src="static/logo.png" alt="logo" /></a>
+      <a href="/" class="logo"><img src="/static/logo.png" alt="logo" /></a>
       {% endif %} {% if not session["user_id"] %}
       <ul class="nav-links">
         <li><a href="/login">Login</a></li>
