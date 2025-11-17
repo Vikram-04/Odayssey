@@ -9,47 +9,45 @@
     {% endif %}
 
     <form action="/journal/write" method="POST">
-      <!-- Mood and Prompt Display Section -->
-      <div class="row mb-4">
-        <div class="col-md-6">
-          <div class="form-group">
-            <label for="mood"><strong>Mood:</strong></label>
-            <input
-              type="text"
-              id="mood"
-              name="mood"
-              class="form-control"
-              value="{{ mood }}"
-              readonly
-              style="
-                background-color: #e8f4f8;
-                border: 1px solid #b3d9e8;
-                font-weight: 600;
-                color: #001f54;
-              "
-            />
-          </div>
-        </div>
-        <div class="col-md-6">
-          <div class="form-group">
-            <label for="prompt"><strong>Journal Prompt:</strong></label>
-            <input
-              type="text"
-              id="prompt-display"
-              class="form-control"
-              value="{{ prompt }}"
-              readonly
-              style="
-                background-color: #e8f4f8;
-                border: 1px solid #b3d9e8;
-                font-style: italic;
-              "
-            />
-            <textarea id="prompt" name="prompt" class="d-none">
+      <!-- Mood Display -->
+      <div class="form-group mb-3">
+        <label for="mood"><strong>Mood:</strong></label>
+        <input
+          type="text"
+          id="mood"
+          name="mood"
+          class="form-control"
+          value="{{ mood }}"
+          readonly
+          style="
+            background-color: #e8f4f8;
+            border: 1px solid #b3d9e8;
+            font-weight: 600;
+            color: #001f54;
+          "
+        />
+      </div>
+
+      <!-- Prompt Display -->
+      <div class="form-group mb-4">
+        <label for="prompt"><strong>Writing Prompt:</strong></label>
+        <textarea
+          id="prompt-display"
+          class="form-control"
+          readonly
+          rows="3"
+          style="
+            background-color: #e8f4f8;
+            border: 1px solid #b3d9e8;
+            font-style: italic;
+            resize: none;
+          "
+        >
 {{ prompt }}</textarea
-            >
-          </div>
-        </div>
+        >
+        <textarea id="prompt" name="prompt" class="d-none">
+{{ prompt }}</textarea
+        >
       </div>
 
       <!-- Content Editor with Lined Background -->
@@ -70,9 +68,10 @@
               #ccc 100%
             );
             background-size: 100% 30px;
-            background-position: 0 15px;
+            background-position: 0 0;
+            background-attachment: local;
             line-height: 30px;
-            padding: 20px 15px;
+            padding: 0 15px;
             font-family: 'Poppins', serif;
             resize: vertical;
             border: 1px solid #d0d0d0;

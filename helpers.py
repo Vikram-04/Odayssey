@@ -46,7 +46,6 @@ def fetch_quote():
 
 def generate_journal_prompt(mood):
     """Generate a journal prompt based on mood using Gemini API"""
-    # Fallback prompts if API is not available
     fallback_prompts = {
         'Happy': 'What made you smile today? Reflect on the moments that brought you joy.',
         'Sad': 'What\'s on your mind? It\'s okay to feel down sometimes. Write about what\'s troubling you.',
@@ -75,187 +74,33 @@ def generate_journal_prompt(mood):
     }
     
     api_key = os.getenv('GEMINI_API_KEY')
-    
-    
     if not api_key:
-        # Return fallback prompt if API key is not set
-        print(f"⚠ GEMINI_API_KEY not found in environment variables, using fallback prompt for mood: {mood}")
-        print(f"  → To enable AI prompts, add GEMINI_API_KEY=your_api_key to your .env file")
         return fallback_prompts.get(mood, f'How are you feeling about being {mood}? Reflect on your emotions and experiences.')
     
-    # Try the new Gemini API approach first (from google import genai)
     try:
         from google import genai
+        client = genai.Client(api_key=api_key)
         
-        # Initialize client with API key (can also use environment variable GEMINI_API_KEY)
-        # Set API key in environment for this call
-        original_key = os.environ.get('GEMINI_API_KEY')
-        os.environ['GEMINI_API_KEY'] = api_key
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=f"Generate a thoughtful journal prompt for someone feeling {mood}. Keep it 1-2 sentences and empathetic. Return only the prompt text."
+        )
         
-        try:
-            client = genai.Client(api_key=api_key)
-        except:
-            # If api_key parameter doesn't work, try without it (uses env var)
-            client = genai.Client()
-        
-        prompt_text = f"""Generate a thoughtful, empathetic journal prompt for someone feeling {mood}. 
-The prompt should be encouraging, reflective, and help the person explore their emotions. 
-Keep it concise (1-2 sentences) and avoid being too prescriptive. 
-Focus on helping them understand and process their feelings. 
-Return only the prompt text, no additional formatting or explanations."""
-        
-        # Try gemini-2.5-flash first, then fallback to gemini-1.5-flash
-        model_name = "gemini-2.5-flash"
-        response = None
-        try:
-            response = client.models.generate_content(
-                model=model_name,
-                contents=prompt_text
-            )
-        except Exception as model_error:
-            print(f"  → Model {model_name} not available, trying gemini-1.5-flash: {model_error}")
-            model_name = "gemini-1.5-flash"
-            try:
-                response = client.models.generate_content(
-                    model=model_name,
-                    contents=prompt_text
-                )
-            except Exception as model_error2:
-                print(f"  → Model {model_name} also failed: {model_error2}")
-                raise model_error2
-        
-        # Restore original environment variable if it existed
-        if original_key:
-            os.environ['GEMINI_API_KEY'] = original_key
-        elif 'GEMINI_API_KEY' in os.environ:
-            del os.environ['GEMINI_API_KEY']
-        
-        # Extract text from response
+        # Extract text from response - handle different response structures
         prompt_result = None
-        if hasattr(response, 'text'):
-            prompt_result = response.text
-        elif hasattr(response, 'candidates') and len(response.candidates) > 0:
+        if hasattr(response, 'text') and response.text:
+            prompt_result = response.text.strip()
+        elif hasattr(response, 'candidates') and response.candidates:
             candidate = response.candidates[0]
             if hasattr(candidate, 'content') and hasattr(candidate.content, 'parts'):
-                if len(candidate.content.parts) > 0:
-                    prompt_result = candidate.content.parts[0].text
-            elif hasattr(candidate, 'text'):
-                prompt_result = candidate.text
+                if candidate.content.parts:
+                    prompt_result = candidate.content.parts[0].text.strip()
         
-        # Clean up the result
-        if prompt_result:
-            prompt_result = prompt_result.strip()
-            # Remove markdown formatting if present
-            prompt_result = prompt_result.replace('*', '').replace('**', '').strip()
-            # Remove quotes if the AI wrapped it in quotes
-            if prompt_result.startswith('"') and prompt_result.endswith('"'):
-                prompt_result = prompt_result[1:-1].strip()
-            if prompt_result.startswith("'") and prompt_result.endswith("'"):
-                prompt_result = prompt_result[1:-1].strip()
-            
-        # Validate the response isn't empty
+        # Return if valid response
         if prompt_result and len(prompt_result) > 10:
-            print(f"✓ Successfully generated AI prompt for mood: {mood} (using {model_name})")
             return prompt_result
-        else:
-            print(f"⚠ AI returned empty/invalid prompt, using fallback for mood: {mood}")
-            return fallback_prompts.get(mood, f'How are you feeling about being {mood}? Reflect on your emotions and experiences.')
-            
-    except ImportError as import_err:
-        # If new API not available, try HTTP approach
-        print(f"  → New Gemini API not available ({import_err}), trying HTTP approach...")
-        # Fall through to HTTP approach
-    except Exception as api_err:
-        # If new API fails (e.g., Python 3.14 compatibility), try HTTP approach
-        error_type = type(api_err).__name__
-        error_msg = str(api_err)
-        if 'Metaclass' in error_type or 'tp_new' in error_msg:
-            print(f"  → Python 3.14 compatibility issue detected ({error_type}), trying HTTP approach...")
-        else:
-            print(f"  → New API error ({error_type}): {error_msg}, trying HTTP approach...")
-        # Fall through to HTTP approach
+    except Exception as e:
+        print(f"Error generating prompt for mood '{mood}': {e}")
     
-    # Fallback to HTTP request approach if new API fails
-    try:
-        import json
-        
-        # Request payload
-        payload = {
-            "contents": [{
-                "parts": [{
-                    "text": f"""Generate a thoughtful, empathetic journal prompt for someone feeling {mood}. 
-The prompt should be encouraging, reflective, and help the person explore their emotions. 
-Keep it concise (1-2 sentences) and avoid being too prescriptive. 
-Focus on helping them understand and process their feelings. 
-Return only the prompt text, no additional formatting or explanations."""
-                }]
-            }],
-            "generationConfig": {
-                "temperature": 0.7,
-                "topK": 40,
-                "topP": 0.95,
-                "maxOutputTokens": 200,
-            }
-        }
-        
-        # Make HTTP request
-        headers = {
-            "Content-Type": "application/json"
-        }
-        
-        # Try v1beta endpoint first (more commonly available)
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
-        
-        response = requests.post(url, headers=headers, json=payload, timeout=10)
-        response.raise_for_status()
-        
-        # Parse response
-        data = response.json()
-        
-        # Extract text from response
-        prompt_result = None
-        if 'candidates' in data and len(data['candidates']) > 0:
-            candidate = data['candidates'][0]
-            if 'content' in candidate and 'parts' in candidate['content']:
-                if len(candidate['content']['parts']) > 0:
-                    prompt_result = candidate['content']['parts'][0].get('text', '')
-        
-        # Clean up the result
-        if prompt_result:
-            prompt_result = prompt_result.strip()
-            # Remove markdown formatting if present
-            prompt_result = prompt_result.replace('*', '').replace('**', '').strip()
-            # Remove quotes if the AI wrapped it in quotes
-            if prompt_result.startswith('"') and prompt_result.endswith('"'):
-                prompt_result = prompt_result[1:-1].strip()
-            if prompt_result.startswith("'") and prompt_result.endswith("'"):
-                prompt_result = prompt_result[1:-1].strip()
-                
-        # Validate the response isn't empty
-        if prompt_result and len(prompt_result) > 10:
-            print(f"✓ Successfully generated AI prompt for mood: {mood} (using HTTP API)")
-            return prompt_result
-        else:
-            print(f"⚠ HTTP API returned empty/invalid prompt, using fallback for mood: {mood}")
-            return fallback_prompts.get(mood, f'How are you feeling about being {mood}? Reflect on your emotions and experiences.')
-            
-    except requests.exceptions.RequestException as http_err:
-        # If HTTP request fails, use fallback
-        error_msg = str(http_err)
-        print(f"✗ Error with HTTP request to Gemini API for mood '{mood}': {error_msg}")
-        
-        if '401' in error_msg or '403' in error_msg:
-            print("  → Authentication error. Please check your GEMINI_API_KEY in .env file.")
-        elif '429' in error_msg:
-            print("  → API quota or rate limit exceeded.")
-        elif '404' in error_msg:
-            print("  → API endpoint not found. The API endpoint may have changed.")
-        
-        return fallback_prompts.get(mood, f'How are you feeling about being {mood}? Reflect on your emotions and experiences.')
-    except Exception as final_err:
-        # If everything fails, use fallback
-        error_type = type(final_err).__name__
-        error_msg = str(final_err)
-        print(f"✗ All API methods failed for mood '{mood}': {error_type}: {error_msg}")
-        return fallback_prompts.get(mood, f'How are you feeling about being {mood}? Reflect on your emotions and experiences.')
+    return fallback_prompts.get(mood, f'How are you feeling about being {mood}? Reflect on your emotions and experiences.')
  
