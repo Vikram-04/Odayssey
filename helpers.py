@@ -83,7 +83,7 @@ def generate_journal_prompt(mood):
         
         response = client.models.generate_content(
             model="gemini-2.5-flash",
-            contents=f"Generate a thoughtful journal prompt for someone feeling {mood}. Keep it 1-2 sentences and empathetic. Return only the prompt text."
+            contents=f"For a person feeling {mood}, generate 3-4 first-person journaling questions. They should help them naturally express their thoughts immediately and spontaneously. Use simple language. At least one question should invite them to write anything they've been holding in or couldn't express through the other questions. Do not give advice. Only output the questions."
         )
         
         # Extract text from response - handle different response structures
