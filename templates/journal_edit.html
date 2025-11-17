@@ -20,10 +20,13 @@ block body %}
           value="{{ entry.mood }}"
           readonly
           style="
-            background-color: #e8f4f8;
-            border: 1px solid #b3d9e8;
+            background-color: transparent;
+            border: none;
+            border-bottom: 1px solid #ccc;
             font-weight: 600;
             color: #001f54;
+            padding-left: 0;
+            box-shadow: none;
           "
         />
       </div>
@@ -37,10 +40,13 @@ block body %}
           readonly
           rows="3"
           style="
-            background-color: #e8f4f8;
-            border: 1px solid #b3d9e8;
+            background-color: transparent;
+            border: none;
+            border-bottom: 1px solid #ccc;
             font-style: italic;
             resize: none;
+            padding-left: 0;
+            box-shadow: none;
           "
         >
 {{ entry.prompt }}</textarea
